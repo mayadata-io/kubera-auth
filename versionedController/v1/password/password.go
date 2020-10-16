@@ -6,7 +6,7 @@ import (
 	log "github.com/golang/glog"
 
 	"github.com/gin-gonic/gin"
-	"github.com/mayadata-io/kubera-auth/controller"
+	controller "github.com/mayadata-io/kubera-auth/versionedController/v1"
 )
 
 //Password ...

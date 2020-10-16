@@ -6,8 +6,8 @@ import (
 	"github.com/gin-gonic/gin"
 	log "github.com/golang/glog"
 
-	"github.com/mayadata-io/kubera-auth/controller"
 	"github.com/mayadata-io/kubera-auth/pkg/models"
+	controller "github.com/mayadata-io/kubera-auth/versionedController/v1"
 )
 
 // User is a type to be accepted as input

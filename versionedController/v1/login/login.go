@@ -8,10 +8,10 @@ import (
 	"github.com/gin-gonic/gin"
 	log "github.com/golang/glog"
 
-	"github.com/mayadata-io/kubera-auth/controller"
 	"github.com/mayadata-io/kubera-auth/pkg/models"
 	"github.com/mayadata-io/kubera-auth/pkg/oauth/providers"
 	"github.com/mayadata-io/kubera-auth/pkg/types"
+	controller "github.com/mayadata-io/kubera-auth/versionedController/v1"
 )
 
 //LoginUser is the type the request in which the request will be parsed
