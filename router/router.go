@@ -1,6 +1,8 @@
 package router
 
 import (
+	"net/http"
+
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 
@@ -19,6 +21,7 @@ const (
 	updateDetailsRoute  = "/update/details"
 	getUsersRoute       = "/users"
 	logoutRoute         = "/logout"
+	healthCheckRoute    = "/health"
 )
 
 var (
@@ -49,7 +52,12 @@ func New() *gin.Engine {
 		v1.POST(createRoute, userController.Create)
 		v1.POST(updateDetailsRoute, userController.UpdateUserDetails)
 		v1.POST(resetPasswordRoute, passwordController.Reset)
+		v1.GET(healthCheckRoute, healthCheck)
 	}
 
 	return router
+}
+
+func healthCheck(c *gin.Context) {
+	c.Writer.WriteHeader(http.StatusOK)
 }
