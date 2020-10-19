@@ -8,8 +8,8 @@ import (
 	"github.com/google/go-github/github"
 	"golang.org/x/oauth2"
 
-	"github.com/mayadata-io/kubera-auth/controller"
 	"github.com/mayadata-io/kubera-auth/pkg/models"
+	controller "github.com/mayadata-io/kubera-auth/versionedController/v1"
 )
 
 func getUserFromToken(c *gin.Context, token *oauth2.Token) (*models.UserCredentials, error) {

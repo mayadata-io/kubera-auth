@@ -1,13 +1,15 @@
 package router
 
 import (
+	"net/http"
+
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 
-	"github.com/mayadata-io/kubera-auth/controller"
-	"github.com/mayadata-io/kubera-auth/controller/login"
-	"github.com/mayadata-io/kubera-auth/controller/password"
-	"github.com/mayadata-io/kubera-auth/controller/user"
+	v1 "github.com/mayadata-io/kubera-auth/versionedController/v1"
+	"github.com/mayadata-io/kubera-auth/versionedController/v1/login"
+	"github.com/mayadata-io/kubera-auth/versionedController/v1/password"
+	"github.com/mayadata-io/kubera-auth/versionedController/v1/user"
 )
 
 const (
@@ -19,12 +21,13 @@ const (
 	updateDetailsRoute  = "/update/details"
 	getUsersRoute       = "/users"
 	logoutRoute         = "/logout"
+	healthCheckRoute    = "/health"
 )
 
 var (
-	userController     controller.UserController     = user.New()
-	loginController    controller.LoginController    = login.New()
-	passwordController controller.PasswordController = password.New()
+	userController     v1.UserController     = user.New()
+	loginController    v1.LoginController    = login.New()
+	passwordController v1.PasswordController = password.New()
 )
 
 // New will create a new routes
@@ -38,15 +41,23 @@ func New() *gin.Engine {
 
 	router.Use(cors.New(config))
 
-	// Handle the request for chaos-schedule
-	router.GET(getUsersRoute, userController.GetAllUsers)
-	router.POST(logoutRoute, userController.Logout)
-	router.POST(loginRoute, loginController.Login)
-	router.GET(loginRoute, loginController.SocialLogin)
-	router.GET(githubLoginRoute, loginController.CallbackRequest)
-	router.POST(updatePasswordRoute, passwordController.Update)
-	router.POST(createRoute, userController.Create)
-	router.POST(updateDetailsRoute, userController.UpdateUserDetails)
-	router.POST(resetPasswordRoute, passwordController.Reset)
+	v1 := router.Group("v1")
+	{
+		v1.GET(getUsersRoute, userController.GetAllUsers)
+		v1.POST(logoutRoute, userController.Logout)
+		v1.POST(loginRoute, loginController.Login)
+		v1.GET(loginRoute, loginController.SocialLogin)
+		v1.GET(githubLoginRoute, loginController.CallbackRequest)
+		v1.POST(updatePasswordRoute, passwordController.Update)
+		v1.POST(createRoute, userController.Create)
+		v1.POST(updateDetailsRoute, userController.UpdateUserDetails)
+		v1.POST(resetPasswordRoute, passwordController.Reset)
+		v1.GET(healthCheckRoute, healthCheck)
+	}
+
 	return router
+}
+
+func healthCheck(c *gin.Context) {
+	c.Writer.WriteHeader(http.StatusOK)
 }
