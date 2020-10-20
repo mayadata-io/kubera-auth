@@ -1,6 +1,7 @@
 package generates
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"time"
@@ -8,10 +9,14 @@ import (
 	errs "errors"
 
 	"github.com/dgrijalva/jwt-go"
+	log "github.com/golang/glog"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/mayadata-io/kubera-auth/pkg/errors"
+	"github.com/mayadata-io/kubera-auth/pkg/k8s"
 	"github.com/mayadata-io/kubera-auth/pkg/models"
 	"github.com/mayadata-io/kubera-auth/pkg/types"
+	"github.com/mayadata-io/kubera-auth/pkg/utils/random"
 )
 
 // JWTAccessClaims jwt claims
@@ -24,6 +29,8 @@ type JWTAccessClaims struct {
 
 // NewJWTAccessGenerate create to generate the jwt access token instance
 func NewJWTAccessGenerate(key []byte, method jwt.SigningMethod) *JWTAccessGenerate {
+
+	initializeSecret()
 	return &JWTAccessGenerate{
 		SignedKey:    key,
 		SignedMethod: method,
@@ -41,6 +48,26 @@ type GenerateBasic struct {
 type JWTAccessGenerate struct {
 	SignedKey    []byte
 	SignedMethod jwt.SigningMethod
+}
+
+func initializeSecret() {
+	cm, err := k8s.ClientSet.CoreV1().ConfigMaps(types.DefaultNamespace).Get(context.TODO(), types.DefaultConfigMap, metav1.GetOptions{})
+	if err != nil {
+		log.Errorln("Error fetching config map", err)
+	}
+
+	if cm.Data[types.JWTSecretString] != "" {
+		types.DefaultAPISecret = cm.Data[types.JWTSecretString]
+		return
+	}
+
+	secret := random.GetRandomString(10)
+	cm.Data[types.JWTSecretString] = secret
+	cm, err = k8s.ClientSet.CoreV1().ConfigMaps(types.DefaultNamespace).Update(context.TODO(), cm, metav1.UpdateOptions{})
+	if err != nil {
+		log.Errorln("Error updating the configmap")
+	}
+	types.DefaultAPISecret = secret
 }
 
 // Token based on the UUID generated token

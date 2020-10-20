@@ -13,7 +13,6 @@ import (
 	"github.com/mayadata-io/kubera-auth/pkg/errors"
 	"github.com/mayadata-io/kubera-auth/pkg/generates"
 	"github.com/mayadata-io/kubera-auth/pkg/models"
-	"github.com/mayadata-io/kubera-auth/pkg/oauth"
 	"github.com/mayadata-io/kubera-auth/pkg/store"
 	"github.com/mayadata-io/kubera-auth/pkg/types"
 	"github.com/mayadata-io/kubera-auth/pkg/utils/random"
@@ -28,7 +27,6 @@ func NewManager() *Manager {
 type Manager struct {
 	accessGenerate *generates.JWTAccessGenerate
 	userStore      *store.UserStore
-	OAuthConfig    oauth.SocialAuthConfig
 }
 
 // MapAccessGenerate mapping the access token generate interface
@@ -162,8 +160,8 @@ func generateUserName(name string) string {
 		lname = names[0]
 	}
 
-	appendString := random.GetRandomString(5)
-	choose, err := strconv.Atoi(random.GetRandomString(1))
+	appendString := random.GetRandomNumbers(5)
+	choose, err := strconv.Atoi(random.GetRandomNumbers(1))
 
 	if err != nil {
 		choose = 0
