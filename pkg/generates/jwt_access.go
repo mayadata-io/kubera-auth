@@ -3,6 +3,7 @@ package generates
 import (
 	"context"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -28,11 +29,11 @@ type JWTAccessClaims struct {
 }
 
 // NewJWTAccessGenerate create to generate the jwt access token instance
-func NewJWTAccessGenerate(key []byte, method jwt.SigningMethod) *JWTAccessGenerate {
+func NewJWTAccessGenerate(method jwt.SigningMethod) *JWTAccessGenerate {
 
-	initializeSecret()
+	key := initializeSecret()
 	return &JWTAccessGenerate{
-		SignedKey:    key,
+		SignedKey:    []byte(key),
 		SignedMethod: method,
 	}
 }
@@ -50,24 +51,27 @@ type JWTAccessGenerate struct {
 	SignedMethod jwt.SigningMethod
 }
 
-func initializeSecret() {
-	cm, err := k8s.ClientSet.CoreV1().ConfigMaps(types.DefaultNamespace).Get(context.TODO(), types.DefaultConfigMap, metav1.GetOptions{})
-	if err != nil {
-		log.Errorln("Error fetching config map", err)
-	}
-
-	if cm.Data[types.JWTSecretString] != "" {
-		types.DefaultAPISecret = cm.Data[types.JWTSecretString]
-		return
-	}
+func initializeSecret() string {
 
 	secret := random.GetRandomString(10)
+
+	cm, err := k8s.ClientSet.CoreV1().ConfigMaps(types.DefaultNamespace).Get(context.TODO(), types.DefaultConfigMap, metav1.GetOptions{})
+	if err != nil || cm == nil {
+		// Switching to development mode
+		log.Errorln("Error fetching config map", err)
+		log.Infoln("Switching to development mode")
+		os.Setenv(types.JWTSecretString, secret)
+		return secret
+	} else if cm.Data[types.JWTSecretString] != "" {
+		return cm.Data[types.JWTSecretString]
+	}
+
 	cm.Data[types.JWTSecretString] = secret
 	cm, err = k8s.ClientSet.CoreV1().ConfigMaps(types.DefaultNamespace).Update(context.TODO(), cm, metav1.UpdateOptions{})
 	if err != nil {
 		log.Errorln("Error updating the configmap")
 	}
-	types.DefaultAPISecret = secret
+	return secret
 }
 
 // Token based on the UUID generated token
@@ -159,6 +163,6 @@ func (a *JWTAccessGenerate) parseToken(tokenString string) (*jwt.Token, error) {
 			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
 		}
 
-		return []byte(types.DefaultAPISecret), nil
+		return []byte(a.SignedKey), nil
 	})
 }
