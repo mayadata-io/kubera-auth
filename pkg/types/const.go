@@ -7,7 +7,9 @@ import (
 
 // define the type of authorization request
 var (
-	DefaultAPISecret           string = os.Getenv("JWT_SECRET")
+	JWTSecretString            string = "JWT_SECRET"
+	DefaultNamespace           string = "kubera"
+	DefaultConfigMap           string = "kubera-core-config"
 	DefaultUserName            string = os.Getenv("ADMIN_USERNAME")
 	DefaultUserPassword        string = os.Getenv("ADMIN_PASSWORD")
 	DefaultDBServerURL         string = os.Getenv("DB_SERVER")

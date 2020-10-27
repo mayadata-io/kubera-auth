@@ -34,7 +34,7 @@ func NewServer(cfg *Config) *Server {
 
 	manager.MustUserStorage(store.NewUserStore(userStoreCfg, store.NewDefaultUserConfig()))
 
-	manager.MapAccessGenerate(generates.NewJWTAccessGenerate([]byte(types.DefaultAPISecret), jwt.SigningMethodHS512))
+	manager.MapAccessGenerate(generates.NewJWTAccessGenerate(jwt.SigningMethodHS512))
 
 	srv := &Server{
 		Config:       cfg,
