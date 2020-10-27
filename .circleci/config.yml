@@ -1,0 +1,56 @@
+version: 2.1
+jobs:
+  auth-build:
+    machine:
+      image: ubuntu-1604:201903-01
+    working_directory: ~/kubera-auth
+    environment:
+      GO111MODULE: "on"
+    steps:
+      - run:
+          name: Setup GO
+          command: cd && wget https://dl.google.com/go/go1.14.6.linux-amd64.tar.gz && sudo tar -xvf go1.14.6.linux-amd64.tar.gz && sudo rm -rf /usr/local/go && sudo mv go /usr/local && export GOROOT=/usr/local/go && export BUILD_TYPE=ci
+      - checkout
+      - run:
+          name: Run Checks
+          command: make deps checks
+      - run:
+          name: Build Image
+          command: make build
+      - run:
+          name: Push Image
+          command: make push
+
+  auth-build-release:
+    machine:
+      image: ubuntu-1604:201903-01
+    working_directory: ~/kubera-auth
+    environment:
+      GO111MODULE: "on"
+    steps:
+      - run:
+          name: Setup GO
+          command: cd && wget https://dl.google.com/go/go1.14.6.linux-amd64.tar.gz && sudo tar -xvf go1.14.6.linux-amd64.tar.gz && sudo rm -rf /usr/local/go && sudo mv go /usr/local && export GOROOT=/usr/local/go && export BUILD_TYPE=release
+      - checkout
+      - run:
+          name: Run Checks
+          command: make deps checks
+      - run:
+          name: Build Image
+          command: make build
+      - run:
+          name: Push Image
+          command: make push
+
+workflows:
+  version: 2
+  auth-build:
+    jobs:
+      - auth-build
+      - auth-build-release:
+          filters:
+            ## release jobs needs to be run for tagged releases alone & not for any branch commits
+            branches:
+              ignore: /.*/
+            tags:
+              only: /.*/
