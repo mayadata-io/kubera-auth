@@ -2,27 +2,35 @@ package login
 
 import (
 	"net/http"
-	"net/url"
 	"os"
 
 	"github.com/gin-gonic/gin"
 	log "github.com/golang/glog"
 
 	"github.com/mayadata-io/kubera-auth/pkg/models"
-	"github.com/mayadata-io/kubera-auth/pkg/oauth/providers"
 	"github.com/mayadata-io/kubera-auth/pkg/types"
 	controller "github.com/mayadata-io/kubera-auth/versionedController/v1"
 )
 
-//LoginUser is the type the request in which the request will be parsed
-type LoginUser struct {
+//LoginController is the type the request in which the request will be parsed
+type LoginController struct {
+	controller.GenericController
+	routePath string
+	model     *Model
+}
+
+// Model defines the json struct in which the request will be parsed
+type Model struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
 }
 
 // New creates a new LoginUser
-func New() *LoginUser {
-	return &LoginUser{}
+func New() *LoginController {
+	return &LoginController{
+		routePath: controller.TokenRoute,
+		model:     &Model{},
+	}
 }
 
 func init() {
@@ -31,9 +39,9 @@ func init() {
 	}
 }
 
-// Login lets a user login into the kubera-core
-func (loginUser *LoginUser) Login(c *gin.Context) {
-	err := c.BindJSON(loginUser)
+// Post lets a user login into the kubera-core
+func (login *LoginController) Post(c *gin.Context) {
+	err := c.BindJSON(login.model)
 	if err != nil {
 		log.Error(err)
 		c.JSON(http.StatusNotAcceptable, gin.H{
@@ -42,15 +50,15 @@ func (loginUser *LoginUser) Login(c *gin.Context) {
 		return
 	}
 
-	controller.Server.LocalLoginRequest(c, loginUser.Username, loginUser.Password)
+	controller.Server.LocalLoginRequest(c, login.model.Username, login.model.Password)
 	return
 }
 
-/* SocialLogin will be triggered on GET request on the same path as Login alogn with a "auth_type" parameter
+/* Get will be triggered on GET request on the same path as Login alogn with a "auth_type" parameter
 ** so as to identify the type of login user is up to. This has to be triggered through a href request
 ** so that the user is able to be redirected to provider page for login.
 ** Javascript Get Request can block the redirection of user */
-func (loginUser *LoginUser) SocialLogin(c *gin.Context) {
+func (login *LoginController) Get(c *gin.Context) {
 
 	authType := c.Query("auth_type")
 	switch models.AuthType(authType) {
@@ -68,47 +76,13 @@ func (loginUser *LoginUser) SocialLogin(c *gin.Context) {
 	}
 }
 
-//CallbackRequest will be triggered by the provider automatically after the login
-func (loginUser *LoginUser) CallbackRequest(c *gin.Context) {
+// Delete lets a user logout of the kubera-core
+func (login *LoginController) Delete(c *gin.Context) {
+	controller.Server.LogoutRequest(c)
+	return
+}
 
-	var user *models.UserCredentials
-	var err error
-	u := types.PortalURL + "/login?"
-	values := url.Values{}
-	state := c.Query("state")
-
-	switch state {
-	case types.GithubState:
-		{
-			user, err = providers.GetGithubUser(c)
-			if err != nil {
-				log.Errorln("Error getting user from github", err)
-				c.JSON(http.StatusInternalServerError, gin.H{
-					"error": err.Error(),
-				})
-				c.Redirect(http.StatusFound, u)
-				return
-			}
-		}
-	default:
-		{
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": "state Invalid",
-			})
-			c.Redirect(http.StatusFound, u)
-			return
-		}
-	}
-
-	ti, err := controller.Server.SocialLoginRequest(c, user)
-	if err != nil {
-		log.Errorln("Error logging in", err)
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
-		c.Redirect(http.StatusFound, u)
-		return
-	}
-	values.Set("access_token", ti.GetAccess())
-	c.Redirect(http.StatusFound, u+values.Encode())
+// Register will rsgister this controller to the specified router
+func (login *LoginController) Register(router *gin.RouterGroup) {
+	controller.RegisterController(router, login, login.routePath)
 }

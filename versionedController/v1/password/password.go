@@ -9,21 +9,29 @@ import (
 	controller "github.com/mayadata-io/kubera-auth/versionedController/v1"
 )
 
-//Password ...
-type Password struct {
-	Username    string `json:"username,omitempty"`
+type PasswordController struct {
+	controller.GenericController
+	routePath string
+	model     *Model
+}
+
+//Model ...
+type Model struct {
 	OldPassword string `json:"old_password,omitempty"`
 	NewPassword string `json:"new_password,omitempty"`
 }
 
 // New creates a new User
-func New() *Password {
-	return &Password{}
+func New() *PasswordController {
+	return &PasswordController{
+		routePath: controller.PasswordRoute,
+		model:     &Model{},
+	}
 }
 
-//Update updates the password of the concerned user
-func (password *Password) Update(c *gin.Context) {
-	err := c.BindJSON(password)
+//Put updates the password of the concerned user
+func (password *PasswordController) Put(c *gin.Context) {
+	err := c.BindJSON(password.model)
 	if err != nil {
 		log.Error(err)
 		c.JSON(http.StatusNotAcceptable, gin.H{
@@ -32,21 +40,11 @@ func (password *Password) Update(c *gin.Context) {
 		return
 	}
 
-	controller.Server.UpdatePasswordRequest(c, password.OldPassword, password.NewPassword)
+	controller.Server.UpdatePasswordRequest(c, password.model.OldPassword, password.model.NewPassword)
 	return
 }
 
-//Reset updates the password of concerned user ggiven that request should be sent by admin
-func (password *Password) Reset(c *gin.Context) {
-	err := c.BindJSON(password)
-	if err != nil {
-		log.Error(err)
-		c.JSON(http.StatusNotAcceptable, gin.H{
-			"message": "Unable to parse JSON",
-		})
-		return
-	}
-
-	controller.Server.ResetPasswordRequest(c, password.NewPassword, password.Username)
-	return
+// Register will rsgister this controller to the specified router
+func (password *PasswordController) Register(router *gin.RouterGroup) {
+	controller.RegisterController(router, password, password.routePath)
 }

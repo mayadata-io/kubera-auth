@@ -10,23 +10,24 @@ import (
 	controller "github.com/mayadata-io/kubera-auth/versionedController/v1"
 )
 
-// User is a type to be accepted as input
-type User models.UserCredentials
+// UserController is a type to be accepted as input
+type UserController struct {
+	controller.GenericController
+	routePath string
+	model     *models.UserCredentials
+}
 
 // New creates a new User
-func New() *User {
-	return &User{}
+func New() *UserController {
+	return &UserController{
+		routePath: controller.UserRoute,
+		model:     &models.UserCredentials{},
+	}
 }
 
-// Logout lets a user login into the kubera-core
-func (user *User) Logout(c *gin.Context) {
-	controller.Server.LogoutRequest(c)
-	return
-}
-
-// UpdateUserDetails updates a user details
-func (user *User) UpdateUserDetails(c *gin.Context) {
-	err := c.BindJSON(user)
+// Put updates a user details
+func (user *UserController) Put(c *gin.Context) {
+	err := c.BindJSON(user.model)
 	if err != nil {
 		log.Error(err)
 		c.JSON(http.StatusNotAcceptable, gin.H{
@@ -35,14 +36,14 @@ func (user *User) UpdateUserDetails(c *gin.Context) {
 		return
 	}
 
-	userModel := models.UserCredentials(*user)
+	userModel := models.UserCredentials(*user.model)
 	controller.Server.UpdateUserDetailsRequest(c, &userModel)
 	return
 }
 
-//Create creates a user, request should be sent by admin
-func (user *User) Create(c *gin.Context) {
-	err := c.BindJSON(user)
+//Patch updates the password of concerned user ggiven that request should be sent by admin
+func (user *UserController) Patch(c *gin.Context) {
+	err := c.BindJSON(user.model)
 	if err != nil {
 		log.Error(err)
 		c.JSON(http.StatusNotAcceptable, gin.H{
@@ -51,14 +52,48 @@ func (user *User) Create(c *gin.Context) {
 		return
 	}
 
-	userModel := models.UserCredentials(*user)
+	controller.Server.ResetPasswordRequest(c, user.model.Password, user.model.UserName)
+	return
+}
+
+//Post creates a user, request should be sent by admin
+func (user *UserController) Post(c *gin.Context) {
+	err := c.BindJSON(user.model)
+	if err != nil {
+		log.Error(err)
+		c.JSON(http.StatusNotAcceptable, gin.H{
+			"message": "Unable to parse JSON",
+		})
+		return
+	}
+
+	userModel := models.UserCredentials(*user.model)
 	userModel.Kind = models.LocalAuth
 	controller.Server.CreateRequest(c, &userModel)
 	return
 }
 
-//GetAllUsers responds with a list of users
-func (user *User) GetAllUsers(c *gin.Context) {
-	controller.Server.GetUsersRequest(c)
-	return
+// Get will respond with a particular user or all users
+func (user *UserController) Get(c *gin.Context) {
+	err := c.BindJSON(user.model)
+	if err != nil {
+		log.Error(err)
+		c.JSON(http.StatusNotAcceptable, gin.H{
+			"message": "Unable to parse JSON",
+		})
+		return
+	}
+
+	if user.model.UserName == "" {
+		// Get all users
+		controller.Server.GetUsersRequest(c)
+		return
+	}
+
+	controller.Server.GetUserRequest(c, user.model)
+}
+
+// Register will rsgister this controller to the specified router
+func (user *UserController) Register(router *gin.RouterGroup) {
+	controller.RegisterController(router, user, user.routePath)
 }
