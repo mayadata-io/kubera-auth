@@ -332,7 +332,7 @@ func (s *Server) CreateRequest(c *gin.Context, user *models.UserCredentials) {
 	return
 }
 
-// GetUsersRequest validates the request
+// GetUsersRequest gets all the users
 func (s *Server) GetUsersRequest(c *gin.Context) {
 
 	userInfo, err := s.getUserFromToken(c.Request)
@@ -351,4 +351,20 @@ func (s *Server) GetUsersRequest(c *gin.Context) {
 	}
 	s.redirect(c, users)
 	return
+}
+
+//GetUserRequest gets a particular user
+func (s *Server) GetUserRequest(c *gin.Context, user *models.UserCredentials) {
+
+	if user.GetUserName() == "" {
+		c.JSON(http.StatusBadRequest, errors.ErrInvalidRequest)
+		return
+	}
+
+	storedUser, err := s.Manager.GetUser(user.GetUserName())
+	if err != nil {
+		s.redirectError(c, err)
+		return
+	}
+	s.redirect(c, storedUser.GetPublicInfo())
 }
