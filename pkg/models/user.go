@@ -23,6 +23,7 @@ type UserCredentials struct {
 	Email        *string    `bson:"email,omitempty"`
 	Name         string     `bson:"name,omitempty"`
 	Kind         AuthType   `bson:"kind,omitempty"`
+	Role         Role       `bson:"role,omitempty"`
 	LoggedIn     bool       `bson:"logged_in,omitempty"`
 	SocialAuthID int64      `bson:"social_auth_id,omitempty"`
 	CreatedAt    *time.Time `bson:"created_at,omitempty"`
@@ -45,10 +46,22 @@ const (
 	GmailAuth AuthType = "gmail"
 )
 
+// Role states the role of the user in the portal
+type Role string
+
+const (
+	//RoleAdmin gives the admin permissions to a user
+	RoleAdmin Role = "admin"
+
+	//RoleUser gives the normal user permissions to a user
+	RoleUser Role = "User"
+)
+
 //DefaultUser is the admin user created by default
 var DefaultUser *UserCredentials = &UserCredentials{
 	UserName: types.DefaultUserName,
 	Password: types.DefaultUserPassword,
+	Role:     RoleAdmin,
 }
 
 //PublicUserInfo displays the information of the user that is publicly available
@@ -57,6 +70,8 @@ type PublicUserInfo struct {
 	UserName  string     `json:"username"`
 	Email     *string    `json:"email"`
 	Name      string     `json:"name"`
+	Kind      AuthType   `bson:"kind,omitempty"`
+	Role      Role       `bson:"role,omitempty"`
 	LoggedIn  bool       `json:"logged_in"`
 	CreatedAt *time.Time `json:"created_at"`
 	UpdatedAt *time.Time `json:"updated_at"`
@@ -133,6 +148,16 @@ func (u *UserCredentials) GetLoggedIn() bool {
 	return u.LoggedIn
 }
 
+// GetRole user password
+func (u *UserCredentials) GetRole() Role {
+	return u.Role
+}
+
+// GetKind user password
+func (u *UserCredentials) GetKind() AuthType {
+	return u.Kind
+}
+
 // GetPublicInfo fetches the pubicUserInfo from User
 func (u *UserCredentials) GetPublicInfo() *PublicUserInfo {
 	return &PublicUserInfo{
@@ -140,6 +165,8 @@ func (u *UserCredentials) GetPublicInfo() *PublicUserInfo {
 		UserName:  u.GetUserName(),
 		Email:     u.GetEmail(),
 		ID:        u.GetID(),
+		Kind:      u.GetKind(),
+		Role:      u.GetRole(),
 		LoggedIn:  u.GetLoggedIn(),
 		CreatedAt: u.GetCreatedAt(),
 		UpdatedAt: u.GetUpdatedAt(),
@@ -191,4 +218,14 @@ func (uinfo *PublicUserInfo) GetRemovedAt() *time.Time {
 // GetState user state
 func (uinfo *PublicUserInfo) GetState() State {
 	return uinfo.State
+}
+
+// GetRole user password
+func (u *PublicUserInfo) GetRole() Role {
+	return u.Role
+}
+
+// GetKind user password
+func (u *PublicUserInfo) GetKind() AuthType {
+	return u.Kind
 }

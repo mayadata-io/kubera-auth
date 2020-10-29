@@ -30,6 +30,7 @@ func getUserFromToken(c *gin.Context, token *oauth2.Token) (*models.UserCredenti
 		Name:         githubUser.GetName(),
 		Email:        githubUser.Email,
 		Kind:         models.GithubAuth,
+		Role:         models.RoleUser,
 		SocialAuthID: githubUser.GetID(),
 		LoggedIn:     true,
 		CreatedAt:    &currTime,

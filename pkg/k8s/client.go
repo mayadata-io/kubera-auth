@@ -15,7 +15,7 @@ var ClientSet *kubernetes.Clientset
 func init() {
 	var err error
 	ClientSet, err = getGenericK8sClient()
-	if err != nil {
+	if err != nil || ClientSet == nil {
 		log.Errorln("Error creating client set", err)
 		return
 	}
