@@ -111,6 +111,7 @@ func (m *Manager) LocalLoginUser(username string) error {
 		return err
 	}
 	storedUser.LoggedIn = true
+	storedUser.State = models.StateActive
 	return m.userStore.UpdateUser(storedUser)
 }
 
