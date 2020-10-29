@@ -10,6 +10,7 @@ metadata:
   name: kubera-auth-config
   namespace: kubera
 data:
+  CONFIGMAP_NAME: kubera-auth-config
   JWT_SECRET: cluster
   DB_SERVER: "mongodb://mongo-service:27017"
   DB_USER: "admin"

@@ -22,10 +22,18 @@ import (
 
 // JWTAccessClaims jwt claims
 type JWTAccessClaims struct {
-	UserName string  `json:"username,omitempty"`
-	Email    *string `json:"email,omitempty"`
-	Name     string  `json:"name,omitempty"`
+	UUID     string      `json:"uuid,omitempty"`
+	Role     models.Role `json:"role,omitempty"`
+	UserName string      `json:"username,omitempty"`
+	Email    *string     `json:"email,omitempty"`
+	Name     string      `json:"name,omitempty"`
 	jwt.StandardClaims
+}
+
+func init() {
+	if os.Getenv("CONFIGMAP_NAME") == "" {
+		log.Fatal("Environment variable CONFIGMAP_NAME is not set")
+	}
 }
 
 // NewJWTAccessGenerate create to generate the jwt access token instance
@@ -54,6 +62,9 @@ type JWTAccessGenerate struct {
 func initializeSecret() string {
 
 	secret := random.GetRandomString(10)
+	if k8s.ClientSet == nil {
+		return secret
+	}
 
 	cm, err := k8s.ClientSet.CoreV1().ConfigMaps(types.DefaultNamespace).Get(context.TODO(), types.DefaultConfigMap, metav1.GetOptions{})
 	if err != nil || cm == nil {
@@ -77,6 +88,8 @@ func initializeSecret() string {
 // Token based on the UUID generated token
 func (a *JWTAccessGenerate) Token(data *GenerateBasic) (string, error) {
 	claims := &JWTAccessClaims{
+		UUID:     data.UserInfo.GetID(),
+		Role:     data.UserInfo.GetRole(),
 		UserName: data.UserInfo.GetUserName(),
 		Email:    data.UserInfo.GetEmail(),
 		Name:     data.UserInfo.GetName(),

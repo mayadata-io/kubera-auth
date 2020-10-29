@@ -9,7 +9,7 @@ import (
 var (
 	JWTSecretString            string = "JWT_SECRET"
 	DefaultNamespace           string = "kubera"
-	DefaultConfigMap           string = "kubera-core-config"
+	DefaultConfigMap           string = os.Getenv("CONFIGMAP_NAME")
 	DefaultUserName            string = os.Getenv("ADMIN_USERNAME")
 	DefaultUserPassword        string = os.Getenv("ADMIN_PASSWORD")
 	DefaultDBServerURL         string = os.Getenv("DB_SERVER")

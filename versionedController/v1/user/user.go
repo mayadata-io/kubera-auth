@@ -69,6 +69,7 @@ func (user *UserController) Post(c *gin.Context) {
 
 	userModel := models.UserCredentials(*user.model)
 	userModel.Kind = models.LocalAuth
+	userModel.Role = models.RoleUser
 	controller.Server.CreateRequest(c, &userModel)
 	return
 }
