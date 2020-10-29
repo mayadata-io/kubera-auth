@@ -33,21 +33,21 @@ type GenericController struct {
 }
 
 func (genericController *GenericController) Get(c *gin.Context) {
-	c.Writer.WriteHeader(http.StatusBadRequest)
+	c.Writer.WriteHeader(http.StatusNotFound)
 }
 
 func (genericController *GenericController) Post(c *gin.Context) {
-	c.Writer.WriteHeader(http.StatusBadRequest)
+	c.Writer.WriteHeader(http.StatusNotFound)
 }
 
 func (genericController *GenericController) Put(c *gin.Context) {
-	c.Writer.WriteHeader(http.StatusBadRequest)
+	c.Writer.WriteHeader(http.StatusNotFound)
 }
 
 func (genericController *GenericController) Delete(c *gin.Context) {
-	c.Writer.WriteHeader(http.StatusBadRequest)
+	c.Writer.WriteHeader(http.StatusNotFound)
 }
 
 func (genericController *GenericController) Patch(c *gin.Context) {
-	c.Writer.WriteHeader(http.StatusBadRequest)
+	c.Writer.WriteHeader(http.StatusNotFound)
 }

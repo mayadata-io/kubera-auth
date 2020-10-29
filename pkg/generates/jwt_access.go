@@ -164,6 +164,8 @@ func (a *JWTAccessGenerate) Parse(tokenString string) (*models.PublicUserInfo, e
 		userInfo.Email = claims.Email
 		userInfo.Name = claims.Name
 		userInfo.UserName = claims.UserName
+		userInfo.Role = claims.Role
+		userInfo.ID = claims.UUID
 		return userInfo, nil
 	}
 	return nil, errors.ErrInvalidAccessToken
