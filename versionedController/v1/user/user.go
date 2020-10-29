@@ -76,25 +76,19 @@ func (user *UserController) Post(c *gin.Context) {
 
 // Get will respond with a particular user or all users
 func (user *UserController) Get(c *gin.Context) {
-	err := c.BindJSON(user.model)
-	if err != nil {
-		log.Error(err)
-		c.JSON(http.StatusNotAcceptable, gin.H{
-			"message": "Unable to parse JSON",
-		})
-		return
-	}
+	username := c.Param("username")
 
-	if user.model.UserName == "" {
+	if username == "" {
 		// Get all users
 		controller.Server.GetUsersRequest(c)
 		return
 	}
 
-	controller.Server.GetUserRequest(c, user.model)
+	controller.Server.GetUserRequest(c, username)
 }
 
 // Register will rsgister this controller to the specified router
 func (user *UserController) Register(router *gin.RouterGroup) {
 	controller.RegisterController(router, user, user.routePath)
+	router.GET(user.routePath+"/:username", user.Get)
 }
