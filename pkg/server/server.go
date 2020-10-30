@@ -53,8 +53,8 @@ type Server struct {
 }
 
 func (s *Server) redirectError(c *gin.Context, err error) {
-	data, _, _ := s.getErrorData(err)
-	c.JSON(http.StatusUnauthorized, data)
+	data, code, _ := s.getErrorData(err)
+	c.JSON(code, data)
 }
 
 func (s *Server) redirect(c *gin.Context, data interface{}) {
@@ -273,7 +273,7 @@ func (s *Server) ResetPasswordRequest(c *gin.Context, newPassword, userName stri
 	}
 
 	var updatedUserInfo *models.PublicUserInfo
-	if userInfo.GetUserName() == types.DefaultUserName {
+	if userInfo.GetRole() == models.RoleAdmin {
 
 		updatedUserInfo, err = s.Manager.UpdatePassword(true, "", newPassword, userName)
 		if err != nil {
@@ -319,16 +319,16 @@ func (s *Server) CreateRequest(c *gin.Context, user *models.UserCredentials) {
 	}
 
 	var createdUserInfo *models.PublicUserInfo
-	if userInfo.UserName == types.DefaultUserName {
+	if userInfo.GetRole() == models.RoleAdmin {
 		createdUserInfo, err = s.Manager.CreateUser(user)
 		if err != nil {
 			s.redirectError(c, err)
 			return
 		}
-	} else {
-		s.redirectError(c, errors.ErrInvalidUser)
+		s.redirect(c, createdUserInfo)
+		return
 	}
-	s.redirect(c, createdUserInfo)
+	s.redirectError(c, errors.ErrInvalidUser)
 	return
 }
 
@@ -342,7 +342,7 @@ func (s *Server) GetUsersRequest(c *gin.Context) {
 	}
 
 	var users []*models.PublicUserInfo
-	if userInfo.UserName == types.DefaultUserName {
+	if userInfo.GetRole() == models.RoleAdmin {
 		users, err = s.Manager.GetAllUsers()
 		if err != nil {
 			s.redirectError(c, err)
@@ -354,14 +354,9 @@ func (s *Server) GetUsersRequest(c *gin.Context) {
 }
 
 //GetUserRequest gets a particular user
-func (s *Server) GetUserRequest(c *gin.Context, user *models.UserCredentials) {
+func (s *Server) GetUserRequest(c *gin.Context, username string) {
 
-	if user.GetUserName() == "" {
-		c.JSON(http.StatusBadRequest, errors.ErrInvalidRequest)
-		return
-	}
-
-	storedUser, err := s.Manager.GetUser(user.GetUserName())
+	storedUser, err := s.Manager.GetUser(username)
 	if err != nil {
 		s.redirectError(c, err)
 		return
