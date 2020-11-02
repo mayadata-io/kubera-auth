@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/globalsign/mgo"
+	"github.com/globalsign/mgo/bson"
 	log "github.com/golang/glog"
-	"go.mongodb.org/mongo-driver/bson"
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/mayadata-io/kubera-auth/pkg/errors"
@@ -16,6 +16,7 @@ import (
 	"github.com/mayadata-io/kubera-auth/pkg/store"
 	"github.com/mayadata-io/kubera-auth/pkg/types"
 	"github.com/mayadata-io/kubera-auth/pkg/utils/random"
+	"github.com/mayadata-io/kubera-auth/pkg/utils/uuid"
 )
 
 // NewManager create to authorization management instance
@@ -93,7 +94,7 @@ func (m *Manager) CheckUserExists(user *models.UserCredentials) (bool, error) {
 
 // VerifyUserPassword verifies user password
 func (m *Manager) VerifyUserPassword(username, password string) (*models.PublicUserInfo, error) {
-	user, err := m.GetUser(username)
+	user, err := m.userStore.GetUser(bson.M{"username": username, "kind": models.LocalAuth})
 	if err != nil {
 		return nil, err
 	}
@@ -106,7 +107,7 @@ func (m *Manager) VerifyUserPassword(username, password string) (*models.PublicU
 
 // LocalLoginUser verifies user password
 func (m *Manager) LocalLoginUser(username string) error {
-	storedUser, err := m.GetUser(username)
+	storedUser, err := m.userStore.GetUser(bson.M{"username": username, "kind": models.LocalAuth})
 	if err != nil {
 		return err
 	}
@@ -140,12 +141,16 @@ func (m *Manager) SocialLoginUser(user *models.UserCredentials) (*models.UserCre
 //CreateSocialUser ...
 func (m *Manager) CreateSocialUser(user *models.UserCredentials) error {
 
-	query := bson.M{"email": user.Email}
+	query := bson.M{"email": user.Email, "kind": models.LocalAuth}
 	storedUser, err := m.userStore.GetUser(query)
 	if err != nil && err == mgo.ErrNotFound {
 		user.UserName = generateUserName(user.Name)
+		user.UID = uuid.Must(uuid.NewRandom()).String()
+	} else if err != nil {
+		return err
 	} else {
 		user.UserName = storedUser.UserName
+		user.UID = storedUser.UID
 	}
 
 	return m.userStore.Set(user)
@@ -175,8 +180,8 @@ func generateUserName(name string) string {
 }
 
 // LogoutUser verifies user password
-func (m *Manager) LogoutUser(username string) error {
-	storedUser, err := m.GetUser(username)
+func (m *Manager) LogoutUser(id bson.ObjectId) error {
+	storedUser, err := m.userStore.GetUserByID(id)
 	if err != nil {
 		return err
 	}
@@ -187,20 +192,37 @@ func (m *Manager) LogoutUser(username string) error {
 // CreateUser get the user information
 func (m *Manager) CreateUser(user *models.UserCredentials) (*models.PublicUserInfo, error) {
 
-	exists, err := m.CheckUserExists(user)
-	if err != nil {
+	exists := true
+	_, err := m.userStore.GetUser(bson.M{"username": user.GetUserName()})
+	if err != nil && err == mgo.ErrNotFound {
+		exists = false
+	} else if err != nil {
 		return nil, err
-	} else if exists {
-		return nil, errors.ErrUserExists
 	}
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), types.PasswordEncryptionCost)
-	if err != nil {
-		return nil, err
+	if user.GetEmail() != nil && exists == false {
+		_, err := m.userStore.GetUser(bson.M{"email": *user.Email})
+		if err != nil && err == mgo.ErrNotFound {
+			exists = false
+		} else if err != nil {
+			return nil, err
+		} else {
+			exists = true
+		}
 	}
-	user.Password = string(hashedPassword)
-	err = m.userStore.Set(user)
-	return user.GetPublicInfo(), err
+
+	if exists == false {
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), types.PasswordEncryptionCost)
+		if err != nil {
+			return nil, err
+		}
+		user.Password = string(hashedPassword)
+		user.UID = uuid.Must(uuid.NewRandom()).String()
+		err = m.userStore.Set(user)
+		return user.GetPublicInfo(), err
+	}
+
+	return nil, errors.ErrUserExists
 }
 
 // GenerateAuthToken generate the authorization token(code)
@@ -246,36 +268,41 @@ func (m *Manager) ParseToken(tokenString string) (userInfo *models.PublicUserInf
 // UpdateUserDetails get the user information
 func (m *Manager) UpdateUserDetails(user *models.UserCredentials) (*models.PublicUserInfo, error) {
 
-	if user.GetPassword() == "" {
-		return nil, errors.ErrInvalidRequest
-	}
-
-	storedUser, err := m.GetUser(user.UserName)
+	storedUser, err := m.userStore.GetUserByID(user.GetID())
 	if err != nil {
 		return nil, errors.ErrInvalidUser
 	}
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.GetPassword()), types.PasswordEncryptionCost)
-	if err != nil {
-		return nil, err
+	if user.GetEmail() != nil {
+		storedUser.Email = user.GetEmail()
 	}
-	storedUser.Password = string(hashedPassword)
-	storedUser.Email = user.GetEmail()
-	storedUser.Name = user.GetName()
+	if user.GetName() != "" {
+		storedUser.Name = user.GetName()
+	}
+	if user.GetUserName() != "" {
+		storedUser.UserName = user.GetUserName()
+	}
 
 	err = m.userStore.UpdateUser(storedUser)
 	return storedUser.GetPublicInfo(), err
 }
 
 // UpdatePassword get the user information
-func (m *Manager) UpdatePassword(reset bool, oldPassword, newPassword, userName string) (*models.PublicUserInfo, error) {
+func (m *Manager) UpdatePassword(reset bool, oldPassword, newPassword, userID string) (*models.PublicUserInfo, error) {
 
-	storedUser, err := m.GetUser(userName)
-	if err != nil {
-		return nil, errors.ErrInvalidUser
-	}
+	var storedUser *models.UserCredentials
+	var err error
+	if reset == true {
+		storedUser, err = m.userStore.GetUser(bson.M{"username": userID, "kind": models.LocalAuth})
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		storedUser, err = m.userStore.GetUser(bson.M{"uid": userID, "kind": models.LocalAuth})
+		if err != nil {
+			return nil, err
+		}
 
-	if reset == false {
 		err = bcrypt.CompareHashAndPassword([]byte(storedUser.GetPassword()), []byte(oldPassword))
 		if err != nil {
 			return storedUser.GetPublicInfo(), errors.ErrInvalidPassword

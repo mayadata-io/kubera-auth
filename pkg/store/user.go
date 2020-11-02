@@ -8,7 +8,6 @@ import (
 
 	"github.com/mayadata-io/kubera-auth/pkg/models"
 	"github.com/mayadata-io/kubera-auth/pkg/types"
-	"github.com/mayadata-io/kubera-auth/pkg/utils/uuid"
 )
 
 // UserConfig user configuration parameters
@@ -74,7 +73,7 @@ func (us *UserStore) cHandler(name string, handler func(c *mgo.Collection)) {
 // Set set user information
 func (us *UserStore) Set(user *models.UserCredentials) (err error) {
 	us.cHandler(us.ucfg.UsersCName, func(c *mgo.Collection) {
-		user.ID = uuid.Must(uuid.NewRandom()).String()
+		// user.UID = uuid.Must(uuid.NewRandom()).String()
 		currentTime := time.Now()
 		user.CreatedAt = &currentTime
 		if cerr := c.Insert(user); cerr != nil {
@@ -134,4 +133,9 @@ func (us *UserStore) GetUser(query interface{}) (user *models.UserCredentials, e
 	})
 
 	return
+}
+
+// GetUserByID according to the whatever passed
+func (us *UserStore) GetUserByID(id bson.ObjectId) (user *models.UserCredentials, err error) {
+	return us.GetUser(bson.M{"_id": id})
 }

@@ -4,9 +4,11 @@ import (
 	"os"
 	"time"
 
+	"github.com/globalsign/mgo/bson"
 	log "github.com/golang/glog"
 
 	"github.com/mayadata-io/kubera-auth/pkg/types"
+	"github.com/mayadata-io/kubera-auth/pkg/utils/uuid"
 )
 
 func init() {
@@ -17,19 +19,20 @@ func init() {
 
 //UserCredentials contains the user information
 type UserCredentials struct {
-	ID           string     `bson:"_id,omitempty"`
-	UserName     string     `bson:"username,omitempty"`
-	Password     string     `bson:"password,omitempty"`
-	Email        *string    `bson:"email,omitempty"`
-	Name         string     `bson:"name,omitempty"`
-	Kind         AuthType   `bson:"kind,omitempty"`
-	Role         Role       `bson:"role,omitempty"`
-	LoggedIn     bool       `bson:"logged_in,omitempty"`
-	SocialAuthID int64      `bson:"social_auth_id,omitempty"`
-	CreatedAt    *time.Time `bson:"created_at,omitempty"`
-	UpdatedAt    *time.Time `bson:"updated_at,omitempty"`
-	RemovedAt    *time.Time `bson:"removed_at,omitempty"`
-	State        State      `bson:"state,omitempty"`
+	ID           bson.ObjectId `bson:"_id,omitempty"`
+	UID          string        `bson:"uid,omitempty"`
+	UserName     string        `bson:"username,omitempty"`
+	Password     string        `bson:"password,omitempty"`
+	Email        *string       `bson:"email,omitempty"`
+	Name         string        `bson:"name,omitempty"`
+	Kind         AuthType      `bson:"kind,omitempty"`
+	Role         Role          `bson:"role,omitempty"`
+	LoggedIn     bool          `bson:"logged_in,omitempty"`
+	SocialAuthID int64         `bson:"social_auth_id,omitempty"`
+	CreatedAt    *time.Time    `bson:"created_at,omitempty"`
+	UpdatedAt    *time.Time    `bson:"updated_at,omitempty"`
+	RemovedAt    *time.Time    `bson:"removed_at,omitempty"`
+	State        State         `bson:"state,omitempty"`
 }
 
 //AuthType determines the type of authentication opted by the user for login
@@ -54,29 +57,32 @@ const (
 	RoleAdmin Role = "admin"
 
 	//RoleUser gives the normal user permissions to a user
-	RoleUser Role = "User"
+	RoleUser Role = "user"
 )
 
 //DefaultUser is the admin user created by default
 var DefaultUser *UserCredentials = &UserCredentials{
+	UID:      uuid.Must(uuid.NewRandom()).String(),
 	UserName: types.DefaultUserName,
 	Password: types.DefaultUserPassword,
 	Role:     RoleAdmin,
+	Kind:     LocalAuth,
 }
 
 //PublicUserInfo displays the information of the user that is publicly available
 type PublicUserInfo struct {
-	ID        string     `json:"_id"`
-	UserName  string     `json:"username"`
-	Email     *string    `json:"email"`
-	Name      string     `json:"name"`
-	Kind      AuthType   `bson:"kind,omitempty"`
-	Role      Role       `bson:"role,omitempty"`
-	LoggedIn  bool       `json:"logged_in"`
-	CreatedAt *time.Time `json:"created_at"`
-	UpdatedAt *time.Time `json:"updated_at"`
-	RemovedAt *time.Time `json:"removed_at"`
-	State     State      `json:"state"`
+	ID        bson.ObjectId `json:"_id"`
+	UID       string        `json:"uid"`
+	UserName  string        `json:"username"`
+	Email     *string       `json:"email"`
+	Name      string        `json:"name"`
+	Kind      AuthType      `json:"kind"`
+	Role      Role          `json:"role"`
+	LoggedIn  bool          `json:"logged_in"`
+	CreatedAt *time.Time    `json:"created_at"`
+	UpdatedAt *time.Time    `json:"updated_at"`
+	RemovedAt *time.Time    `json:"removed_at"`
+	State     State         `json:"state"`
 }
 
 //State is the current state of the database entry of the user
@@ -92,7 +98,7 @@ const (
 )
 
 // GetID user id
-func (u *UserCredentials) GetID() string {
+func (u *UserCredentials) GetID() bson.ObjectId {
 	return u.ID
 }
 
@@ -156,6 +162,11 @@ func (u *UserCredentials) GetKind() AuthType {
 	return u.Kind
 }
 
+// GetUID user password
+func (u *UserCredentials) GetUID() string {
+	return u.UID
+}
+
 // GetPublicInfo fetches the pubicUserInfo from User
 func (u *UserCredentials) GetPublicInfo() *PublicUserInfo {
 	return &PublicUserInfo{
@@ -163,6 +174,7 @@ func (u *UserCredentials) GetPublicInfo() *PublicUserInfo {
 		UserName:  u.GetUserName(),
 		Email:     u.GetEmail(),
 		ID:        u.GetID(),
+		UID:       u.GetUID(),
 		Kind:      u.GetKind(),
 		Role:      u.GetRole(),
 		LoggedIn:  u.GetLoggedIn(),
@@ -194,7 +206,7 @@ func (uinfo *PublicUserInfo) GetCreatedAt() *time.Time {
 }
 
 // GetID user ID
-func (uinfo *PublicUserInfo) GetID() string {
+func (uinfo *PublicUserInfo) GetID() bson.ObjectId {
 	return uinfo.ID
 }
 
@@ -219,11 +231,16 @@ func (uinfo *PublicUserInfo) GetState() State {
 }
 
 // GetRole user password
-func (u *PublicUserInfo) GetRole() Role {
-	return u.Role
+func (uinfo *PublicUserInfo) GetRole() Role {
+	return uinfo.Role
 }
 
 // GetKind user password
-func (u *PublicUserInfo) GetKind() AuthType {
-	return u.Kind
+func (uinfo *PublicUserInfo) GetKind() AuthType {
+	return uinfo.Kind
+}
+
+// GetUID user password
+func (uinfo *PublicUserInfo) GetUID() string {
+	return uinfo.UID
 }

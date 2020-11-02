@@ -10,6 +10,7 @@ import (
 	errs "errors"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/globalsign/mgo/bson"
 	log "github.com/golang/glog"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -22,11 +23,12 @@ import (
 
 // JWTAccessClaims jwt claims
 type JWTAccessClaims struct {
-	UUID     string      `json:"uuid,omitempty"`
-	Role     models.Role `json:"role,omitempty"`
-	UserName string      `json:"username,omitempty"`
-	Email    *string     `json:"email,omitempty"`
-	Name     string      `json:"name,omitempty"`
+	ID       bson.ObjectId `json:"_id,omitempty"`
+	UID      string        `json:"uid,omitempty"`
+	Role     models.Role   `json:"role,omitempty"`
+	UserName string        `json:"username,omitempty"`
+	Email    *string       `json:"email,omitempty"`
+	Name     string        `json:"name,omitempty"`
 	jwt.StandardClaims
 }
 
@@ -88,7 +90,8 @@ func initializeSecret() string {
 // Token based on the UUID generated token
 func (a *JWTAccessGenerate) Token(data *GenerateBasic) (string, error) {
 	claims := &JWTAccessClaims{
-		UUID:     data.UserInfo.GetID(),
+		ID:       data.UserInfo.GetID(),
+		UID:      data.UserInfo.GetUID(),
 		Role:     data.UserInfo.GetRole(),
 		UserName: data.UserInfo.GetUserName(),
 		Email:    data.UserInfo.GetEmail(),
@@ -161,11 +164,9 @@ func (a *JWTAccessGenerate) Parse(tokenString string) (*models.PublicUserInfo, e
 	var userInfo *models.PublicUserInfo = new(models.PublicUserInfo)
 
 	if claims, ok := token.Claims.(*JWTAccessClaims); ok && token.Valid {
-		userInfo.Email = claims.Email
-		userInfo.Name = claims.Name
-		userInfo.UserName = claims.UserName
 		userInfo.Role = claims.Role
-		userInfo.ID = claims.UUID
+		userInfo.UID = claims.UID
+		userInfo.ID = claims.ID
 		return userInfo, nil
 	}
 	return nil, errors.ErrInvalidAccessToken
