@@ -13,6 +13,7 @@ var Server = server.NewServer(server.NewConfig())
 
 type Controller interface {
 	Get(c *gin.Context)
+	GetByID(c *gin.Context)
 	Post(c *gin.Context)
 	Put(c *gin.Context)
 	Delete(c *gin.Context)
@@ -22,6 +23,7 @@ type Controller interface {
 
 func RegisterController(router *gin.RouterGroup, controller Controller, routePath string) {
 	router.GET(routePath, controller.Get)
+	router.GET(routePath+"/:id", controller.GetByID)
 	router.POST(routePath, controller.Post)
 	router.PUT(routePath, controller.Put)
 	router.DELETE(routePath, controller.Delete)
@@ -33,6 +35,10 @@ type GenericController struct {
 }
 
 func (genericController *GenericController) Get(c *gin.Context) {
+	c.Writer.WriteHeader(http.StatusNotFound)
+}
+
+func (genericController *GenericController) GetByID(c *gin.Context) {
 	c.Writer.WriteHeader(http.StatusNotFound)
 }
 
