@@ -83,13 +83,11 @@ type PublicUserInfo struct {
 type State string
 
 const (
-	//StateCreating means this entry is being created yet
-	StateCreating State = "creating"
-	//StateActive means this entry is active
+	//StateCreated means admin has created the user but the user has still not logged in
+	StateCreated State = "created"
+	//StateActive means user has logged in successfully
 	StateActive State = "active"
-	//StateRemoving means this entry is being removed
-	StateRemoving State = "removing"
-	//StateRemoved means this entry has been removed
+	//StateRemoved means user has been deleted
 	StateRemoved State = "removed"
 )
 
