@@ -15,6 +15,7 @@ data:
   DB_SERVER: "mongodb://mongo-service:27017"
   DB_USER: "admin"
   DB_PASSWORD: "1234"
+  PORTAL_URL: "https://kubera-core-ui:3000"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -22,11 +23,17 @@ metadata:
   name: kubera-auth-server
   namespace: kubera
 spec:
+  selector:
+    matchLabels:
+      component: kubera-auth-server
   template:
+    metadata:
+      labels:
+        component: kubera-auth-server
     spec:
       containers:
         - name: auth-server
-          image: litmuschaos/litmusportal-auth-server:ci
+          image: mayadataio/kubera-auth:ci
           envFrom:
             - configMapRef:
                 name: kubera-auth-config
@@ -63,7 +70,13 @@ metadata:
   labels:
     app: mongo
 spec:
+  selector:
+    matchLabels:
+      component: auth-database
   template:
+    metadata:
+      labels:
+        component: auth-database
     spec:
       containers:
         - name: mongo
@@ -116,7 +129,7 @@ spec:
     - port: 27017
       targetPort: 27017
   selector:
-    component: database
+    component: auth-database
 ---
 apiVersion: v1
 kind: ServiceAccount

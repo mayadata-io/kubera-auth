@@ -5,6 +5,7 @@ import (
 
 	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
+	log "github.com/golang/glog"
 
 	"github.com/mayadata-io/kubera-auth/pkg/models"
 	"github.com/mayadata-io/kubera-auth/pkg/types"
@@ -28,6 +29,16 @@ func NewDefaultUserConfig() *UserConfig {
 func NewUserStore(cfg *Config, ucfgs ...*UserConfig) (*UserStore, error) {
 	session, err := mgo.Dial(cfg.URL)
 	if err != nil {
+		return nil, err
+	}
+
+	cred := mgo.Credential{
+		Username: types.DBUser,
+		Password: types.DBPassword,
+	}
+	err = session.Login(&cred)
+	if err != nil {
+		log.Errorln("Eror connecting database error", err)
 		return nil, err
 	}
 
