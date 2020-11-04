@@ -47,6 +47,7 @@ func New() *gin.Engine {
 
 	router.Use(cors.New(config))
 
+	v1.InitializeServer()
 	routerV1 := router.Group("v1")
 	{
 		routerV1.GET(githubLoginRoute, CallbackRequest)

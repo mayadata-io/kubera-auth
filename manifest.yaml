@@ -15,7 +15,7 @@ data:
   DB_SERVER: "mongodb://mongo-service:27017"
   DB_USER: "admin"
   DB_PASSWORD: "1234"
-  PORTAL_URL: "https://kubera-core-ui:3000"
+  PORTAL_URL: "https://kubera-core-ui:9091"
 ---
 apiVersion: apps/v1
 kind: Deployment
