@@ -8,8 +8,14 @@ import (
 	"github.com/mayadata-io/kubera-auth/pkg/server"
 )
 
-// Server represents the server with default config
-var Server = server.NewServer(server.NewConfig())
+// Server is the global server
+var Server *server.Server
+
+//InitializeServer initializes the server
+func InitializeServer() {
+	// Server represents the server with default config
+	Server = server.NewServer(server.NewConfig())
+}
 
 type Controller interface {
 	Get(c *gin.Context)

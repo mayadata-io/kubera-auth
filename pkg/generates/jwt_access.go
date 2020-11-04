@@ -39,7 +39,10 @@ func init() {
 // NewJWTAccessGenerate create to generate the jwt access token instance
 func NewJWTAccessGenerate(method jwt.SigningMethod) *JWTAccessGenerate {
 
-	key := initializeSecret()
+	key, err := initializeSecret()
+	if err != nil {
+		log.Fatal(err)
+	}
 	return &JWTAccessGenerate{
 		SignedKey:    []byte(key),
 		SignedMethod: method,
@@ -59,30 +62,24 @@ type JWTAccessGenerate struct {
 	SignedMethod jwt.SigningMethod
 }
 
-func initializeSecret() string {
+func initializeSecret() (string, error) {
 
-	secret := random.GetRandomString(10)
 	if k8s.ClientSet == nil {
-		return secret
+		return "", errors.New("ClienSet not found")
 	}
 
 	cm, err := k8s.ClientSet.CoreV1().ConfigMaps(types.DefaultNamespace).Get(context.TODO(), types.DefaultConfigMap, metav1.GetOptions{})
-	if err != nil || cm == nil {
-		// Switching to development mode
-		log.Errorln("Error fetching config map", err)
-		log.Infoln("Switching to development mode")
-		os.Setenv(types.JWTSecretString, secret)
-		return secret
-	} else if cm.Data[types.JWTSecretString] != "" {
-		return cm.Data[types.JWTSecretString]
+	if err != nil {
+		return "", err
+	}
+	if cm.Data[types.JWTSecretString] != "" {
+		return cm.Data[types.JWTSecretString], nil
 	}
 
+	secret := random.GetRandomString(10)
 	cm.Data[types.JWTSecretString] = secret
-	cm, err = k8s.ClientSet.CoreV1().ConfigMaps(types.DefaultNamespace).Update(context.TODO(), cm, metav1.UpdateOptions{})
-	if err != nil {
-		log.Errorln("Error updating the configmap")
-	}
-	return secret
+	_, err = k8s.ClientSet.CoreV1().ConfigMaps(types.DefaultNamespace).Update(context.TODO(), cm, metav1.UpdateOptions{})
+	return secret, err
 }
 
 // Token based on the UUID generated token

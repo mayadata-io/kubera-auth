@@ -7,6 +7,7 @@ import (
 
 	log "github.com/golang/glog"
 
+	"github.com/mayadata-io/kubera-auth/pkg/k8s"
 	"github.com/mayadata-io/kubera-auth/router"
 )
 
@@ -29,6 +30,7 @@ func main() {
 	// Version Info
 	printVersion()
 
+	k8s.InitializeClientSet()
 	route := router.New()
 	log.Fatal(route.Run(Port))
 }
