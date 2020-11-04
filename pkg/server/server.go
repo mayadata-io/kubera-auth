@@ -20,8 +20,13 @@ import (
 )
 
 func init() {
-	if os.Getenv("JWT_SECRET") == "" || os.Getenv("DB_SERVER") == "" {
-		log.Fatal("Environment variables JWT_SECRET or DB_SERVER are not set")
+	if os.Getenv("JWT_SECRET") == "" {
+		log.Warning("Environment variable JWT_SECRET is not set assigning default value `secret`")
+	} else {
+
+	}
+	if os.Getenv("DB_SERVER") == "" {
+		log.Fatal("Environment variable DB_SERVER is not set")
 	}
 }
 

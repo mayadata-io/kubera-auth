@@ -10,8 +10,15 @@ import (
 )
 
 func init() {
-	if os.Getenv("ADMIN_USERNAME") == "" || os.Getenv("ADMIN_PASSWORD") == "" {
-		log.Fatal("Environment variables ADMIN_USERNAME or ADMIN_PASSWORD are not set")
+	if os.Getenv("ADMIN_USERNAME") == "" {
+		log.Warning("Environment variable ADMIN_USERNAME is not set assigning default value `admin`")
+	} else {
+		os.Setenv("ADMIN_USERNAME", "admin")
+	}
+	if os.Getenv("ADMIN_PASSWORD") == "" {
+		log.Warning("Environment variable ADMIN_PASSWORD is not set assigning default value `password`")
+	} else {
+		os.Setenv("ADMIN_PASSWORD", "password")
 	}
 }
 
