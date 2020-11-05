@@ -31,14 +31,16 @@ func NewUserStore(cfg *Config, ucfgs ...*UserConfig) (*UserStore, error) {
 		return nil, err
 	}
 
-	cred := mgo.Credential{
-		Username: types.DBUser,
-		Password: types.DBPassword,
-	}
-	err = session.Login(&cred)
-	if err != nil {
-		log.Errorln("Eror connecting database error", err)
-		return nil, err
+	if types.DBUser != "" && types.DBPassword != "" {
+		cred := mgo.Credential{
+			Username: types.DBUser,
+			Password: types.DBPassword,
+		}
+		err = session.Login(&cred)
+		if err != nil {
+			log.Errorln("Eror connecting database error", err)
+			return nil, err
+		}
 	}
 
 	return NewUserStoreWithSession(session, cfg.DB, ucfgs...)
