@@ -128,7 +128,7 @@ func (s *Server) LogoutRequest(c *gin.Context) {
 		return
 	}
 
-	err = s.Manager.LogoutUser(userInfo.GetUserName())
+	err = s.Manager.LogoutUser(userInfo.GetID())
 	if err != nil {
 		s.redirectError(c, err)
 		return
@@ -249,7 +249,7 @@ func (s *Server) UpdatePasswordRequest(c *gin.Context, oldPassword, newPassword 
 		return
 	}
 
-	updatedUserInfo, err := s.Manager.UpdatePassword(false, oldPassword, newPassword, userInfo.GetUserName())
+	updatedUserInfo, err := s.Manager.UpdatePassword(false, oldPassword, newPassword, userInfo.GetUID())
 	if err != nil {
 		s.redirectError(c, err)
 		return
@@ -294,7 +294,7 @@ func (s *Server) UpdateUserDetailsRequest(c *gin.Context, user *models.UserCrede
 		return
 	}
 
-	user.UserName = userInfo.GetUserName()
+	user.ID = userInfo.GetID()
 	updatedUserInfo, err := s.Manager.UpdateUserDetails(user)
 	if err != nil {
 		s.redirectError(c, err)
