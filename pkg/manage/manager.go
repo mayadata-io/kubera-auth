@@ -115,7 +115,6 @@ func (m *Manager) LocalLoginUser(username string) error {
 		return err
 	}
 	storedUser.LoggedIn = true
-	storedUser.State = models.StateActive
 	return m.userStore.UpdateUser(storedUser)
 }
 
@@ -302,6 +301,8 @@ func (m *Manager) UpdatePassword(reset bool, oldPassword, newPassword, userID st
 		if err != nil {
 			return storedUser.GetPublicInfo(), errors.ErrInvalidPassword
 		}
+		// Updating the state when the user changes the password himself. Will be useful for the first time
+		storedUser.State = models.StateActive
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), types.PasswordEncryptionCost)
