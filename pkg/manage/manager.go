@@ -274,8 +274,8 @@ func (m *Manager) UpdateUserDetails(user *models.UserCredentials) (*models.Publi
 	exists, err := m.CheckUserExists(storedUser)
 	if err != nil {
 		return nil, err
-	} else if exists == true {
-		return nil, errors.ErrUserExists
+	} else if exists == false {
+		return nil, errors.ErrInvalidUser
 	}
 
 	err = m.userStore.UpdateUser(storedUser)
