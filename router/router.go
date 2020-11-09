@@ -12,6 +12,7 @@ import (
 	"github.com/mayadata-io/kubera-auth/pkg/oauth/providers"
 	"github.com/mayadata-io/kubera-auth/pkg/types"
 	v1 "github.com/mayadata-io/kubera-auth/versionedController/v1"
+	"github.com/mayadata-io/kubera-auth/versionedController/v1/configuration"
 	"github.com/mayadata-io/kubera-auth/versionedController/v1/login"
 	"github.com/mayadata-io/kubera-auth/versionedController/v1/password"
 	"github.com/mayadata-io/kubera-auth/versionedController/v1/user"
@@ -27,6 +28,7 @@ var (
 		login.New(),
 		user.New(),
 		password.New(),
+		configuration.New(),
 	}
 )
 

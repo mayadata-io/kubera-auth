@@ -3,6 +3,7 @@ package oauth
 import (
 	"os"
 
+	"github.com/mayadata-io/kubera-auth/pkg/types"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/github"
 )
@@ -16,8 +17,8 @@ type SocialAuthConfig struct {
 func NewGithubConfig() SocialAuthConfig {
 	return SocialAuthConfig{
 		Config: oauth2.Config{
-			ClientID:     os.Getenv("GITHUB_CLIENT_ID"),
-			ClientSecret: os.Getenv("GITHUB_CLIENT_SECRET"),
+			ClientID:     os.Getenv(types.GITHUB_CLIENT_ID),
+			ClientSecret: os.Getenv(types.GITHUB_CLIENT_SECRET),
 			Scopes:       []string{"read:user", "user:email"},
 			Endpoint:     github.Endpoint,
 		},

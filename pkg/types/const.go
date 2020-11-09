@@ -8,6 +8,8 @@ import (
 // define the type of authorization request
 var (
 	JWTSecretString            string = "JWT_SECRET"
+	GITHUB_CLIENT_ID           string = "GITHUB_CLIENT_ID"
+	GITHUB_CLIENT_SECRET       string = "GITHUB_CLIENT_SECRET"
 	DefaultNamespace           string = os.Getenv("POD_NAMESPACE")
 	DefaultConfigMap           string = os.Getenv("CONFIGMAP_NAME")
 	DefaultUserName            string = os.Getenv("ADMIN_USERNAME")
@@ -16,6 +18,7 @@ var (
 	PortalURL                  string = os.Getenv("PORTAL_URL")
 	DBUser                     string = os.Getenv("DB_USER")
 	DBPassword                 string = os.Getenv("DB_PASSWORD")
+	Crednetials                string = os.Getenv("SECRET_NAME")
 	DefaultAuthDB              string = "auth"
 	DefaultLocalAuthCollection string = "usercredentials"
 	PasswordEncryptionCost     int    = 15
