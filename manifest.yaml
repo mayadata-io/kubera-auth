@@ -5,12 +5,19 @@ metadata:
   name: kubera
 ---
 apiVersion: v1
+kind: Secret
+metadata:
+  name: kubera-oauth-credentials
+  namespace: kubera
+---
+apiVersion: v1
 kind: ConfigMap
 metadata:
   name: kubera-auth-config
   namespace: kubera
 data:
   CONFIGMAP_NAME: kubera-auth-config
+  SECRET_NAME: kubera-oauth-credentials
   DB_SERVER: "mongodb://mongo-service:27017"
   DB_USER: "admin"
   DB_PASSWORD: "1234"
@@ -36,6 +43,8 @@ spec:
           envFrom:
             - configMapRef:
                 name: kubera-auth-config
+            - secretRef:
+                name: kubera-oauth-credentials
           env:
             - name: ADMIN_USERNAME
               value: "admin"
