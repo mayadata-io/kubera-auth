@@ -1,7 +1,6 @@
 package configuration
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -46,7 +45,6 @@ func (configurationController *Controller) Put(c *gin.Context) {
 	}
 
 	credentialType := c.Query("type")
-	fmt.Println("credentials", credentialType)
 	var data map[string]string
 
 	switch credentialType {
@@ -78,6 +76,9 @@ func (configurationController *Controller) Put(c *gin.Context) {
 		log.Errorln("Error updating secret ", err)
 		return
 	}
+
+	controller.Server.GithubConfig.ClientID = configurationController.model.ClientID
+	controller.Server.GithubConfig.ClientSecret = configurationController.model.ClientSecret
 
 	c.String(http.StatusOK, "Credentials Saved sucessfully")
 }
