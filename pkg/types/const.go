@@ -18,7 +18,7 @@ var (
 	PortalURL                  string = os.Getenv("PORTAL_URL")
 	DBUser                     string = os.Getenv("DB_USER")
 	DBPassword                 string = os.Getenv("DB_PASSWORD")
-	Crednetials                string = os.Getenv("SECRET_NAME")
+	Credentials                string = os.Getenv("SECRET_NAME")
 	DefaultAuthDB              string = "auth"
 	DefaultLocalAuthCollection string = "usercredentials"
 	PasswordEncryptionCost     int    = 15

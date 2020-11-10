@@ -29,7 +29,7 @@ type Model struct {
 // New creates a new User
 func New() *Controller {
 	return &Controller{
-		routePath: controller.CredentialsRoute,
+		routePath: controller.ConfigurationRoute,
 		model:     &Model{},
 	}
 }
@@ -64,7 +64,7 @@ func (configurationController *Controller) Put(c *gin.Context) {
 		}
 	}
 
-	secret, err := k8s.ClientSet.CoreV1().Secrets(types.DefaultNamespace).Get(c.Request.Context(), types.Crednetials, metav1.GetOptions{})
+	secret, err := k8s.ClientSet.CoreV1().Secrets(types.DefaultNamespace).Get(c.Request.Context(), types.Credentials, metav1.GetOptions{})
 	if err != nil {
 		c.String(http.StatusInternalServerError, "Error storing credentials : %v", err)
 		log.Errorln("Error getting secret ", err)
