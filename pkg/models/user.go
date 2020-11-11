@@ -63,6 +63,8 @@ const (
 //DefaultUser is the admin user created by default
 var DefaultUser *UserCredentials = &UserCredentials{
 	UID:      uuid.Must(uuid.NewRandom()).String(),
+	Name:     types.DefaultName,
+	Email:    &types.DefaultEmail,
 	UserName: types.DefaultUserName,
 	Password: types.DefaultUserPassword,
 	Role:     RoleAdmin,
