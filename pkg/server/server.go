@@ -335,26 +335,30 @@ func (s *Server) CreateRequest(c *gin.Context, user *models.UserCredentials) {
 // GetUsersRequest gets all the users
 func (s *Server) GetUsersRequest(c *gin.Context) {
 
-	userInfo, err := s.getUserFromToken(c.Request)
+	_, err := s.getUserFromToken(c.Request)
 	if err != nil {
 		s.redirectError(c, err)
 		return
 	}
 
-	var users []*models.PublicUserInfo
-	if userInfo.GetRole() == models.RoleAdmin {
-		users, err = s.Manager.GetAllUsers()
-		if err != nil {
-			s.redirectError(c, err)
-			return
-		}
+	users, err := s.Manager.GetAllUsers()
+	if err != nil {
+		s.redirectError(c, err)
+		return
 	}
+
 	s.redirect(c, users)
 	return
 }
 
 //GetUserRequest gets a particular user
 func (s *Server) GetUserRequest(c *gin.Context, username string) {
+
+	_, err := s.getUserFromToken(c.Request)
+	if err != nil {
+		s.redirectError(c, err)
+		return
+	}
 
 	storedUser, err := s.Manager.GetUser(username)
 	if err != nil {
