@@ -64,8 +64,14 @@ func (login *LoginController) Get(c *gin.Context) {
 	switch models.AuthType(authType) {
 	case models.GithubAuth:
 		{
-			githubURL := controller.Server.GithubConfig.AuthCodeURL(types.GithubState)
-			c.Redirect(http.StatusFound, githubURL)
+			if controller.Server.Config.DisableGithubAuth == false {
+				githubURL := controller.Server.GithubConfig.AuthCodeURL(types.GithubState)
+				c.Redirect(http.StatusFound, githubURL)
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{
+					"error": "Authentication type not allowed",
+				})
+			}
 		}
 	default:
 		{
