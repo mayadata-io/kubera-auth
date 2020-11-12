@@ -48,8 +48,8 @@ func (m *Manager) MustUserStorage(stor *store.UserStore, err error) {
 }
 
 // GetUser get the user information
-func (m *Manager) GetUser(userName string) (user *models.UserCredentials, err error) {
-	query := bson.M{"username": userName}
+func (m *Manager) GetUserByUserNameOrUID(userID string) (user *models.UserCredentials, err error) {
+	query := bson.M{"$or": []bson.M{bson.M{"username": userID}, bson.M{"uid": userID}}}
 	user, err = m.userStore.GetUser(query)
 	if err != nil && err == mgo.ErrNotFound {
 		err = errors.ErrInvalidUser

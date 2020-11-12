@@ -352,7 +352,7 @@ func (s *Server) GetUsersRequest(c *gin.Context) {
 }
 
 //GetUserRequest gets a particular user
-func (s *Server) GetUserRequest(c *gin.Context, username string) {
+func (s *Server) GetUserRequest(c *gin.Context, userID string) {
 
 	_, err := s.getUserFromToken(c.Request)
 	if err != nil {
@@ -360,7 +360,7 @@ func (s *Server) GetUserRequest(c *gin.Context, username string) {
 		return
 	}
 
-	storedUser, err := s.Manager.GetUser(username)
+	storedUser, err := s.Manager.GetUserByUserNameOrUID(userID)
 	if err != nil {
 		s.redirectError(c, err)
 		return
