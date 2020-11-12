@@ -122,7 +122,7 @@ func (s *Server) SocialLoginRequest(c *gin.Context, user *models.UserCredentials
 // LogoutRequest the authorization request handling
 func (s *Server) LogoutRequest(c *gin.Context) {
 
-	userInfo, err := s.getUserFromToken(c.Request)
+	userInfo, err := s.GetUserFromToken(c.Request)
 	if err != nil {
 		s.redirectError(c, err)
 		return
@@ -225,7 +225,8 @@ func (s *Server) getTokenFromHeader(r *http.Request) (string, error) {
 	return token, nil
 }
 
-func (s *Server) getUserFromToken(r *http.Request) (*models.PublicUserInfo, error) {
+// GetUserFromToken gets the user from token
+func (s *Server) GetUserFromToken(r *http.Request) (*models.PublicUserInfo, error) {
 	tokenString, err := s.getTokenFromHeader(r)
 	if err != nil {
 		return nil, err
@@ -238,7 +239,7 @@ func (s *Server) getUserFromToken(r *http.Request) (*models.PublicUserInfo, erro
 // UpdatePasswordRequest validates the request
 func (s *Server) UpdatePasswordRequest(c *gin.Context, oldPassword, newPassword string) {
 
-	userInfo, err := s.getUserFromToken(c.Request)
+	userInfo, err := s.GetUserFromToken(c.Request)
 	if err != nil {
 		s.redirectError(c, err)
 		return
@@ -261,7 +262,7 @@ func (s *Server) UpdatePasswordRequest(c *gin.Context, oldPassword, newPassword 
 // ResetPasswordRequest validates the request
 func (s *Server) ResetPasswordRequest(c *gin.Context, newPassword, userName string) {
 
-	userInfo, err := s.getUserFromToken(c.Request)
+	userInfo, err := s.GetUserFromToken(c.Request)
 	if err != nil {
 		s.redirectError(c, err)
 		return
@@ -288,7 +289,7 @@ func (s *Server) ResetPasswordRequest(c *gin.Context, newPassword, userName stri
 // UpdateUserDetailsRequest validates the request
 func (s *Server) UpdateUserDetailsRequest(c *gin.Context, user *models.UserCredentials) {
 
-	userInfo, err := s.getUserFromToken(c.Request)
+	userInfo, err := s.GetUserFromToken(c.Request)
 	if err != nil {
 		s.redirectError(c, err)
 		return
@@ -307,7 +308,7 @@ func (s *Server) UpdateUserDetailsRequest(c *gin.Context, user *models.UserCrede
 // CreateRequest validates the request
 func (s *Server) CreateRequest(c *gin.Context, user *models.UserCredentials) {
 
-	userInfo, err := s.getUserFromToken(c.Request)
+	userInfo, err := s.GetUserFromToken(c.Request)
 	if err != nil {
 		s.redirectError(c, err)
 		return
@@ -335,7 +336,7 @@ func (s *Server) CreateRequest(c *gin.Context, user *models.UserCredentials) {
 // GetUsersRequest gets all the users
 func (s *Server) GetUsersRequest(c *gin.Context) {
 
-	_, err := s.getUserFromToken(c.Request)
+	_, err := s.GetUserFromToken(c.Request)
 	if err != nil {
 		s.redirectError(c, err)
 		return
@@ -354,7 +355,7 @@ func (s *Server) GetUsersRequest(c *gin.Context) {
 //GetUserByUID gets a particular user
 func (s *Server) GetUserByUID(c *gin.Context, userID string) {
 
-	_, err := s.getUserFromToken(c.Request)
+	_, err := s.GetUserFromToken(c.Request)
 	if err != nil {
 		s.redirectError(c, err)
 		return

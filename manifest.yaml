@@ -22,6 +22,8 @@ data:
   DB_USER: "admin"
   DB_PASSWORD: "1234"
   PORTAL_URL: "https://kubera-core-ui:9091"
+  DISABLE_LOCALAUTH: false
+  DISABLE_GITHUBAUTH: true
 ---
 apiVersion: apps/v1
 kind: Deployment
