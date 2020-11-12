@@ -351,8 +351,8 @@ func (s *Server) GetUsersRequest(c *gin.Context) {
 	return
 }
 
-//GetUserRequest gets a particular user
-func (s *Server) GetUserRequest(c *gin.Context, username string) {
+//GetUserByUID gets a particular user
+func (s *Server) GetUserByUID(c *gin.Context, userID string) {
 
 	_, err := s.getUserFromToken(c.Request)
 	if err != nil {
@@ -360,7 +360,24 @@ func (s *Server) GetUserRequest(c *gin.Context, username string) {
 		return
 	}
 
-	storedUser, err := s.Manager.GetUser(username)
+	storedUser, err := s.Manager.GetUserByUID(userID)
+	if err != nil {
+		s.redirectError(c, err)
+		return
+	}
+	s.redirect(c, storedUser.GetPublicInfo())
+}
+
+//GetUserByUserName gets a particular user
+func (s *Server) GetUserByUserName(c *gin.Context, userID string) {
+
+	_, err := s.getUserFromToken(c.Request)
+	if err != nil {
+		s.redirectError(c, err)
+		return
+	}
+
+	storedUser, err := s.Manager.GetUserByUserName(userID)
 	if err != nil {
 		s.redirectError(c, err)
 		return
