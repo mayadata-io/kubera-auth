@@ -77,19 +77,26 @@ func (user *UserController) Post(c *gin.Context) {
 
 // Get will respond with a particular user or all users
 func (user *UserController) Get(c *gin.Context) {
+	// Get all users
+	controller.Server.GetUsersRequest(c)
+	return
+}
+
+// GetByUID will respond with a particular user or all users
+func (user *UserController) GetByUID(c *gin.Context) {
 	userID := c.Param("userID")
+	controller.Server.GetUserByUID(c, userID)
+}
 
-	if userID == "" {
-		// Get all users
-		controller.Server.GetUsersRequest(c)
-		return
-	}
-
-	controller.Server.GetUserRequest(c, userID)
+// GetByUsername will respond with a particular user or all users
+func (user *UserController) GetByUsername(c *gin.Context) {
+	userID := c.Param("username")
+	controller.Server.GetUserByUserName(c, userID)
 }
 
 // Register will rsgister this controller to the specified router
 func (user *UserController) Register(router *gin.RouterGroup) {
 	controller.RegisterController(router, user, user.routePath)
-	router.GET(user.routePath+"/:userID", user.Get)
+	router.GET(user.routePath+"/uid/:userID", user.GetByUID)
+	router.GET(user.routePath+"/username/:username", user.GetByUsername)
 }
