@@ -372,7 +372,7 @@ func (s *Server) GetUserByUID(c *gin.Context, userID string) {
 //GetUserByUserName gets a particular user
 func (s *Server) GetUserByUserName(c *gin.Context, userID string) {
 
-	_, err := s.getUserFromToken(c.Request)
+	_, err := s.GetUserFromToken(c.Request)
 	if err != nil {
 		s.redirectError(c, err)
 		return
