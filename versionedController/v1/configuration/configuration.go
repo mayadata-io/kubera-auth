@@ -40,10 +40,10 @@ func (configurationController *Controller) Put(c *gin.Context) {
 
 	userInfo, err := controller.Server.GetUserFromToken(c.Request)
 	if err != nil || userInfo == nil {
-		c.JSON(http.StatusUnauthorized, err)
+		c.JSON(http.StatusUnauthorized, err.Error())
 		return
 	} else if userInfo.GetRole() != models.RoleAdmin {
-		c.JSON(http.StatusUnauthorized, err)
+		c.JSON(http.StatusUnauthorized, err.Error())
 		return
 	}
 
@@ -93,7 +93,8 @@ func (configurationController *Controller) Put(c *gin.Context) {
 		controller.Server.GithubConfig.ClientID = *configurationController.model.ClientID
 		controller.Server.GithubConfig.ClientSecret = *configurationController.model.ClientSecret
 
-	} else if configurationController.model.EnableGithub != nil {
+	}
+	if configurationController.model.EnableGithub != nil {
 		cm, err := k8s.ClientSet.CoreV1().ConfigMaps(types.DefaultNamespace).Get(c.Request.Context(), types.DefaultConfigMap, metav1.GetOptions{})
 		if err != nil {
 			c.String(http.StatusInternalServerError, "Error enabling github login : %v", err)
@@ -117,9 +118,15 @@ func (configurationController *Controller) Put(c *gin.Context) {
 
 func (configurationController *Controller) Get(c *gin.Context) {
 
-	auth_data := map[string]bool{
+	auth_data := map[string]interface{}{
 		types.DISABLE_GITHUBAUTH: controller.Server.Config.DisableGithubAuth,
 		types.DISABLE_LOCALAUTH:  controller.Server.Config.DisableLocalAuth,
+	}
+
+	userInfo, err := controller.Server.GetUserFromToken(c.Request)
+	if err == nil && userInfo.GetRole() == models.RoleAdmin {
+		auth_data[types.GITHUB_CLIENT_ID] = controller.Server.GithubConfig.ClientID
+		auth_data[types.GITHUB_CLIENT_SECRET] = controller.Server.GithubConfig.ClientSecret
 	}
 
 	c.JSON(http.StatusOK, auth_data)
