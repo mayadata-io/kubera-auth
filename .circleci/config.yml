@@ -1,5 +1,33 @@
 version: 2.1
 jobs:
+  setup-env:
+    docker:
+      - image: circleci/buildpack-deps:cosmic
+    steps:
+      - run: mkdir -p workspace
+      - run:
+          name: Setup ENV
+          command: |
+            tag=""
+            build_type=""
+            if [ "$CIRCLE_BRANCH" == "" ]; then
+                tag="$CIRCLE_TAG"
+                build_type="release"
+            else
+                tag="$CIRCLE_BRANCH-ci"
+                build_type="ci"
+            fi;
+            echo export IMGTAG=$tag >> workspace/env-vars
+            echo export BUILD_TYPE=$build_type >> workspace/env-vars
+            echo 'export REPONAME="mayadataio"' >> workspace/env-vars
+            echo 'export KUBERA_AUTH="kubera-auth"' >> workspace/env-vars
+            cat workspace/env-vars >> $BASH_ENV
+            source $BASH_ENV
+      - persist_to_workspace:
+          root: workspace
+          paths:
+            - env-vars
+
   auth-build:
     machine:
       image: ubuntu-1604:201903-01
@@ -7,6 +35,11 @@ jobs:
     environment:
       GO111MODULE: "on"
     steps:
+      - attach_workspace:
+          at: /tmp/workspace
+      - run: |
+          cat /tmp/workspace/env-vars >> $BASH_ENV
+          source $BASH_ENV
       - run:
           name: Setup GO
           command: cd && wget https://dl.google.com/go/go1.14.6.linux-amd64.tar.gz && sudo tar -xvf go1.14.6.linux-amd64.tar.gz && sudo rm -rf /usr/local/go && sudo mv go /usr/local && export GOROOT=/usr/local/go && export BUILD_TYPE=ci
@@ -16,41 +49,60 @@ jobs:
           command: make deps checks
       - run:
           name: Build Image
-          command: make build
+          command: make build IMGTAG=${IMGTAG}
       - run:
-          name: Push Image
-          command: make push
+          name: Save kubera-auth docker image
+          command: docker save -o /tmp/workspace/${KUBERA_AUTH}.tar ${REPONAME}/${KUBERA_AUTH}:${IMGTAG}
+      - persist_to_workspace:
+          root: /tmp/workspace
+          paths:
+            - kubera-auth.tar
+            - env-vars
 
-  auth-build-release:
+  auth-push:
     machine:
       image: ubuntu-1604:201903-01
     working_directory: ~/kubera-auth
-    environment:
-      GO111MODULE: "on"
     steps:
-      - run:
-          name: Setup GO
-          command: cd && wget https://dl.google.com/go/go1.14.6.linux-amd64.tar.gz && sudo tar -xvf go1.14.6.linux-amd64.tar.gz && sudo rm -rf /usr/local/go && sudo mv go /usr/local && export GOROOT=/usr/local/go && export BUILD_TYPE=release
+      - attach_workspace:
+          at: /tmp/workspace
+      - run: |
+          cat /tmp/workspace/env-vars >> $BASH_ENV
+          source $BASH_ENV
       - checkout
       - run:
-          name: Run Checks
-          command: make deps checks
+          name: Loading kubera auth docker image
+          command: |
+            docker load -i /tmp/workspace/${KUBERA_AUTH}.tar
       - run:
-          name: Build Image
-          command: make build
+          name: Docker images
+          command: docker images
       - run:
-          name: Push Image
-          command: make push
+          name: Pushing kubera auth
+          command: make push IMGTAG=${IMGTAG} BUILD_TYPE=${BUILD_TYPE}
 
 workflows:
   version: 2
   auth-build:
     jobs:
-      - auth-build
-      - auth-build-release:
+      - setup-env:
           filters:
-            ## release jobs needs to be run for tagged releases alone & not for any branch commits
+            tags:
+              only: /.*/
+      - auth-build:
+          requires:
+            - setup-env
+          filters:
+            tags:
+              only: /.*/
+      - auth-push:
+          requires:
+            - auth-build
+          filters:
             branches:
-              ignore: /.*/
+              only:
+                - master
+                - TechPreview
+                - /^v.*/
             tags:
               only: /.*/

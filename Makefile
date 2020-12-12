@@ -11,7 +11,6 @@ IS_DOCKER_INSTALLED = $(shell which docker >> /dev/null 2>&1; echo $$?)
 #docker info
 REPONAME ?= mayadataio
 IMGNAME ?= kubera-auth
-IMGTAG ?= ci
 
 .PHONY: all
 all: deps checks build push
@@ -63,4 +62,4 @@ push:
 	@echo "------------------"
 	@echo "--> Push Kubera Auth Server images"
 	@echo "------------------"
-	REPONAME=$(REPONAME) IMGNAME=$(IMGNAME) IMGTAG=$(IMGTAG) bash ./hack/push
+	REPONAME=$(REPONAME) IMGNAME=$(IMGNAME) IMGTAG=$(IMGTAG) BUILD_TYPE=$(BUILD_TYPE) bash ./hack/push
