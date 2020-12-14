@@ -10,6 +10,10 @@ RUN CGO_ENABLED=0 go build -o /output/server -v ./src/
 FROM alpine:latest
 
 COPY --from=builder /output/server /
+
+RUN addgroup -S kubera && adduser -S -G kubera 1001 
+USER 1001
+
 CMD ["./server"]
 
 EXPOSE 3000
