@@ -102,7 +102,7 @@ workflows:
             branches:
               only:
                 - master
-                - TechPreview
+                - /TechPreview.*/
                 - /^v.*/
             tags:
               only: /.*/
