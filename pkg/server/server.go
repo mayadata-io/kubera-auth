@@ -87,7 +87,7 @@ func (s *Server) LocalLoginRequest(c *gin.Context, username, password string) {
 		return
 	}
 
-	ti, err := s.Manager.GenerateAuthToken(tgr)
+	ti, err := s.Manager.GenerateAuthToken(tgr, models.TokenLogin)
 	if err != nil {
 		s.redirectError(c, err)
 		return
@@ -116,19 +116,16 @@ func (s *Server) SocialLoginRequest(c *gin.Context, user *models.UserCredentials
 		UserInfo: storedUser.GetPublicInfo(),
 	}
 
-	return s.Manager.GenerateAuthToken(tgr)
+	return s.Manager.GenerateAuthToken(tgr, models.TokenLogin)
 }
 
 // LogoutRequest the authorization request handling
 func (s *Server) LogoutRequest(c *gin.Context) {
 
-	userInfo, err := s.GetUserFromToken(c.Request)
-	if err != nil {
-		s.redirectError(c, err)
-		return
-	}
+	jwtUser, _ := c.Get("userInfo")
+	jwtUserInfo := jwtUser.(*models.PublicUserInfo)
 
-	err = s.Manager.LogoutUser(userInfo.GetID())
+	err := s.Manager.LogoutUser(jwtUserInfo.GetID())
 	if err != nil {
 		s.redirectError(c, err)
 		return
@@ -239,18 +236,15 @@ func (s *Server) GetUserFromToken(r *http.Request) (*models.PublicUserInfo, erro
 // UpdatePasswordRequest validates the request
 func (s *Server) UpdatePasswordRequest(c *gin.Context, oldPassword, newPassword string) {
 
-	userInfo, err := s.GetUserFromToken(c.Request)
-	if err != nil {
-		s.redirectError(c, err)
-		return
-	}
+	jwtUser, _ := c.Get("userInfo")
+	jwtUserInfo := jwtUser.(*models.PublicUserInfo)
 
 	if oldPassword == "" || newPassword == "" {
 		c.JSON(http.StatusBadRequest, errors.ErrInvalidRequest)
 		return
 	}
 
-	updatedUserInfo, err := s.Manager.UpdatePassword(false, oldPassword, newPassword, userInfo.GetUID())
+	updatedUserInfo, err := s.Manager.UpdatePassword(false, oldPassword, newPassword, jwtUserInfo.GetUID())
 	if err != nil {
 		s.redirectError(c, err)
 		return
@@ -262,11 +256,8 @@ func (s *Server) UpdatePasswordRequest(c *gin.Context, oldPassword, newPassword 
 // ResetPasswordRequest validates the request
 func (s *Server) ResetPasswordRequest(c *gin.Context, newPassword, userName string) {
 
-	userInfo, err := s.GetUserFromToken(c.Request)
-	if err != nil {
-		s.redirectError(c, err)
-		return
-	}
+	jwtUser, _ := c.Get("userInfo")
+	jwtUserInfo := jwtUser.(*models.PublicUserInfo)
 
 	if userName == "" || newPassword == "" {
 		c.JSON(http.StatusBadRequest, errors.ErrInvalidRequest)
@@ -274,7 +265,8 @@ func (s *Server) ResetPasswordRequest(c *gin.Context, newPassword, userName stri
 	}
 
 	var updatedUserInfo *models.PublicUserInfo
-	if userInfo.GetRole() == models.RoleAdmin {
+	var err error
+	if jwtUserInfo.GetRole() == models.RoleAdmin {
 
 		updatedUserInfo, err = s.Manager.UpdatePassword(true, "", newPassword, userName)
 		if err != nil {
@@ -289,13 +281,10 @@ func (s *Server) ResetPasswordRequest(c *gin.Context, newPassword, userName stri
 // UpdateUserDetailsRequest validates the request
 func (s *Server) UpdateUserDetailsRequest(c *gin.Context, user *models.UserCredentials) {
 
-	userInfo, err := s.GetUserFromToken(c.Request)
-	if err != nil {
-		s.redirectError(c, err)
-		return
-	}
+	jwtUser, _ := c.Get("userInfo")
+	jwtUserInfo := jwtUser.(*models.PublicUserInfo)
 
-	user.ID = userInfo.GetID()
+	user.ID = jwtUserInfo.GetID()
 	updatedUserInfo, err := s.Manager.UpdateUserDetails(user)
 	if err != nil {
 		s.redirectError(c, err)
@@ -308,11 +297,8 @@ func (s *Server) UpdateUserDetailsRequest(c *gin.Context, user *models.UserCrede
 // CreateRequest validates the request
 func (s *Server) CreateRequest(c *gin.Context, user *models.UserCredentials) {
 
-	userInfo, err := s.GetUserFromToken(c.Request)
-	if err != nil {
-		s.redirectError(c, err)
-		return
-	}
+	jwtUser, _ := c.Get("userInfo")
+	jwtUserInfo := jwtUser.(*models.PublicUserInfo)
 
 	if user.GetUserName() == "" || user.GetPassword() == "" {
 		s.redirectError(c, errors.ErrInvalidRequest)
@@ -320,7 +306,8 @@ func (s *Server) CreateRequest(c *gin.Context, user *models.UserCredentials) {
 	}
 
 	var createdUserInfo *models.PublicUserInfo
-	if userInfo.GetRole() == models.RoleAdmin {
+	var err error
+	if jwtUserInfo.GetRole() == models.RoleAdmin {
 		createdUserInfo, err = s.Manager.CreateUser(user)
 		if err != nil {
 			s.redirectError(c, err)
@@ -335,13 +322,6 @@ func (s *Server) CreateRequest(c *gin.Context, user *models.UserCredentials) {
 
 // GetUsersRequest gets all the users
 func (s *Server) GetUsersRequest(c *gin.Context) {
-
-	_, err := s.GetUserFromToken(c.Request)
-	if err != nil {
-		s.redirectError(c, err)
-		return
-	}
-
 	users, err := s.Manager.GetAllUsers()
 	if err != nil {
 		s.redirectError(c, err)
@@ -354,13 +334,6 @@ func (s *Server) GetUsersRequest(c *gin.Context) {
 
 //GetUserByUID gets a particular user
 func (s *Server) GetUserByUID(c *gin.Context, userID string) {
-
-	_, err := s.GetUserFromToken(c.Request)
-	if err != nil {
-		s.redirectError(c, err)
-		return
-	}
-
 	storedUser, err := s.Manager.GetUserByUID(userID)
 	if err != nil {
 		s.redirectError(c, err)
@@ -371,17 +344,63 @@ func (s *Server) GetUserByUID(c *gin.Context, userID string) {
 
 //GetUserByUserName gets a particular user
 func (s *Server) GetUserByUserName(c *gin.Context, userID string) {
-
-	_, err := s.GetUserFromToken(c.Request)
-	if err != nil {
-		s.redirectError(c, err)
-		return
-	}
-
 	storedUser, err := s.Manager.GetUserByUserName(userID)
 	if err != nil {
 		s.redirectError(c, err)
 		return
 	}
 	s.redirect(c, storedUser.GetPublicInfo())
+}
+
+func (s *Server) GenerateVerificationLink(c *gin.Context, email string) string {
+
+	jwtUser, _ := c.Get("userInfo")
+	jwtUserInfo := jwtUser.(*models.PublicUserInfo)
+
+	if jwtUserInfo.IsEmailVerified == true {
+		c.JSON(http.StatusMethodNotAllowed, gin.H{
+			"message": "Already Verified",
+		})
+		return ""
+	}
+
+	jwtUserInfo.Email = &email
+	s.Manager.UpdateUserDetails(jwtUserInfo.GetUserCredentials())
+
+	tgr := &manage.TokenGenerateRequest{
+		UserInfo:       jwtUserInfo,
+		AccessTokenExp: time.Minute * 10,
+	}
+
+	ti, err := s.Manager.GenerateAuthToken(tgr, models.TokenVerify)
+	if err != nil {
+		s.redirectError(c, err)
+		return ""
+	}
+
+	link := types.PortalURL + "/api/auth/v1/email?access=" + ti.Access
+	return link
+}
+
+// VerifyEmail marks a user email as verified
+func (s *Server) VerifyEmail(c *gin.Context) {
+
+	jwtUser, _ := c.Get("userInfo")
+	jwtUserInfo := jwtUser.(*models.PublicUserInfo)
+	jwtUserInfo.IsEmailVerified = true
+
+	s.Manager.UpdateUserDetails(jwtUserInfo.GetUserCredentials())
+
+	tgr := &manage.TokenGenerateRequest{
+		UserInfo:       jwtUserInfo,
+		AccessTokenExp: time.Minute * 10,
+	}
+
+	ti, err := s.Manager.GenerateAuthToken(tgr, models.TokenVerify)
+	if err != nil {
+		s.redirectError(c, err)
+		return
+	}
+
+	s.redirect(c, s.getTokenData(ti))
 }

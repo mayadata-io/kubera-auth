@@ -5,15 +5,28 @@ import (
 )
 
 // NewToken create to token model instance
-func NewToken() *Token {
-	return &Token{}
+func NewToken(jwtType TokenType) *Token {
+	return &Token{
+		Type: jwtType,
+	}
 }
+
+// TokenType defines the use of generated token
+type TokenType string
+
+var (
+	// TokenLogin will be used for login purposes
+	TokenLogin TokenType = "Login"
+	// TokenVerify will be used for verifying the email
+	TokenVerify TokenType = "Verify"
+)
 
 // Token token model
 type Token struct {
 	Access          string        `bson:"Access"`
 	AccessCreateAt  time.Time     `bson:"AccessCreateAt"`
 	AccessExpiresIn time.Duration `bson:"AccessExpiresIn"`
+	Type            TokenType     `bson:"type"`
 }
 
 // GetAccess access Token
