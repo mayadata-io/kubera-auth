@@ -122,7 +122,11 @@ func (s *Server) SocialLoginRequest(c *gin.Context, user *models.UserCredentials
 // LogoutRequest the authorization request handling
 func (s *Server) LogoutRequest(c *gin.Context) {
 
-	jwtUser, _ := c.Get("userInfo")
+	jwtUser, exists := c.Get(types.UserInfoKey)
+	if !exists {
+		s.redirectError(c, errors.ErrInvalidAccessToken)
+		return
+	}
 	jwtUserInfo := jwtUser.(*models.PublicUserInfo)
 
 	err := s.Manager.LogoutUser(jwtUserInfo.GetID())
@@ -236,7 +240,11 @@ func (s *Server) GetUserFromToken(r *http.Request) (*models.PublicUserInfo, erro
 // UpdatePasswordRequest validates the request
 func (s *Server) UpdatePasswordRequest(c *gin.Context, oldPassword, newPassword string) {
 
-	jwtUser, _ := c.Get("userInfo")
+	jwtUser, exists := c.Get(types.UserInfoKey)
+	if !exists {
+		s.redirectError(c, errors.ErrInvalidAccessToken)
+		return
+	}
 	jwtUserInfo := jwtUser.(*models.PublicUserInfo)
 
 	if oldPassword == "" || newPassword == "" {
@@ -256,7 +264,11 @@ func (s *Server) UpdatePasswordRequest(c *gin.Context, oldPassword, newPassword 
 // ResetPasswordRequest validates the request
 func (s *Server) ResetPasswordRequest(c *gin.Context, newPassword, userName string) {
 
-	jwtUser, _ := c.Get("userInfo")
+	jwtUser, exists := c.Get(types.UserInfoKey)
+	if !exists {
+		s.redirectError(c, errors.ErrInvalidAccessToken)
+		return
+	}
 	jwtUserInfo := jwtUser.(*models.PublicUserInfo)
 
 	if userName == "" || newPassword == "" {
@@ -281,7 +293,11 @@ func (s *Server) ResetPasswordRequest(c *gin.Context, newPassword, userName stri
 // UpdateUserDetailsRequest validates the request
 func (s *Server) UpdateUserDetailsRequest(c *gin.Context, user *models.UserCredentials) {
 
-	jwtUser, _ := c.Get("userInfo")
+	jwtUser, exists := c.Get(types.UserInfoKey)
+	if !exists {
+		s.redirectError(c, errors.ErrInvalidAccessToken)
+		return
+	}
 	jwtUserInfo := jwtUser.(*models.PublicUserInfo)
 
 	user.ID = jwtUserInfo.GetID()
@@ -297,7 +313,11 @@ func (s *Server) UpdateUserDetailsRequest(c *gin.Context, user *models.UserCrede
 // CreateRequest validates the request
 func (s *Server) CreateRequest(c *gin.Context, user *models.UserCredentials) {
 
-	jwtUser, _ := c.Get("userInfo")
+	jwtUser, exists := c.Get(types.UserInfoKey)
+	if !exists {
+		s.redirectError(c, errors.ErrInvalidAccessToken)
+		return
+	}
 	jwtUserInfo := jwtUser.(*models.PublicUserInfo)
 
 	if user.GetUserName() == "" || user.GetPassword() == "" {
@@ -354,21 +374,27 @@ func (s *Server) GetUserByUserName(c *gin.Context, userID string) {
 
 func (s *Server) GenerateVerificationLink(c *gin.Context, email string) string {
 
-	jwtUser, _ := c.Get("userInfo")
+	jwtUser, exists := c.Get(types.UserInfoKey)
+	if !exists {
+		s.redirectError(c, errors.ErrInvalidAccessToken)
+		return ""
+	}
 	jwtUserInfo := jwtUser.(*models.PublicUserInfo)
 
 	if jwtUserInfo.IsEmailVerified == true {
-		c.JSON(http.StatusMethodNotAllowed, gin.H{
-			"message": "Already Verified",
-		})
+		s.redirectError(c, errors.New("Already Verified"))
 		return ""
 	}
 
 	jwtUserInfo.Email = &email
-	s.Manager.UpdateUserDetails(jwtUserInfo.GetUserCredentials())
+	updatedUserInfo, err := s.Manager.UpdateUserDetails(jwtUserInfo.GetUserCredentials())
+	if err != nil {
+		s.redirectError(c, err)
+		return ""
+	}
 
 	tgr := &manage.TokenGenerateRequest{
-		UserInfo:       jwtUserInfo,
+		UserInfo:       updatedUserInfo,
 		AccessTokenExp: time.Minute * 10,
 	}
 
@@ -385,7 +411,11 @@ func (s *Server) GenerateVerificationLink(c *gin.Context, email string) string {
 // VerifyEmail marks a user email as verified
 func (s *Server) VerifyEmail(c *gin.Context) {
 
-	jwtUser, _ := c.Get("userInfo")
+	jwtUser, exists := c.Get(types.UserInfoKey)
+	if !exists {
+		s.redirectError(c, errors.ErrInvalidAccessToken)
+		return
+	}
 	jwtUserInfo := jwtUser.(*models.PublicUserInfo)
 	jwtUserInfo.IsEmailVerified = true
 

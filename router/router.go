@@ -138,5 +138,5 @@ func Middleware(c *gin.Context) {
 		})
 		return
 	}
-	c.Set("userInfo", userInfo)
+	c.Set(types.UserInfoKey, userInfo)
 }

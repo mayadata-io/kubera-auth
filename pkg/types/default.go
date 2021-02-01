@@ -13,4 +13,6 @@ var (
 	PasswordEncryptionCost     int    = 15
 	TimeFormat                 string = time.RFC1123Z
 	GithubState                string = "github"
+	UserInfoKey                string = "userInfo"
+	TemplatePath               string = "./templates"
 )

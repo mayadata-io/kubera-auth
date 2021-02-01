@@ -1,13 +1,14 @@
 package email
 
 import (
-	"errors"
 	"net/http"
 
 	log "github.com/golang/glog"
 
 	"github.com/gin-gonic/gin"
 	"github.com/mayadata-io/kubera-auth/pkg/generates"
+	"github.com/mayadata-io/kubera-auth/pkg/models"
+	"github.com/mayadata-io/kubera-auth/pkg/types"
 	controller "github.com/mayadata-io/kubera-auth/versionedController/v1"
 )
 
@@ -30,7 +31,7 @@ func New() *EmailController {
 	}
 }
 
-//Post  ...
+//Post send the verification link to an email address
 func (emailController *EmailController) Post(c *gin.Context) {
 	err := c.BindJSON(emailController.model)
 	if err != nil {
@@ -41,16 +42,19 @@ func (emailController *EmailController) Post(c *gin.Context) {
 		return
 	}
 
+	jwtUser, _ := c.Get(types.UserInfoKey)
+	jwtUserInfo := jwtUser.(*models.PublicUserInfo)
+
 	link := controller.Server.GenerateVerificationLink(c, emailController.model.Email)
 	if link == "" {
 		return
 	}
 
-	buf := generates.GetEmailBody(c, link)
-	if buf == nil {
-		log.Error(errors.New("Email template not found"))
+	buf, err := generates.GetEmailBody(jwtUserInfo.Name, link)
+	if err != nil {
+		log.Error(err)
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": "Unable to send email",
+			"message": "Unable to parse email template",
 		})
 		return
 	}
@@ -69,7 +73,7 @@ func (emailController *EmailController) Post(c *gin.Context) {
 	})
 }
 
-//Get ...
+//Get verifies the email by a link
 func (emailController *EmailController) Get(c *gin.Context) {
 	token := c.Query("access")
 

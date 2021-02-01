@@ -3,13 +3,9 @@ package generates
 import (
 	"bytes"
 	"html/template"
-	"net/http"
 
-	"github.com/gin-gonic/gin"
-	log "github.com/golang/glog"
 	"gopkg.in/gomail.v2"
 
-	"github.com/mayadata-io/kubera-auth/pkg/models"
 	"github.com/mayadata-io/kubera-auth/pkg/types"
 )
 
@@ -19,12 +15,16 @@ type TemplateVariables struct {
 }
 
 var (
-	emailHost   = "smtp.gmail.com"
-	emailPort   = 465
-	contentType = "text/html"
-	keySubject  = "Subject"
-	keyTo       = "To"
-	keyFrom     = "From"
+	emailHost                = "smtp.gmail.com"
+	emailPort                = 465
+	contentType              = "text/html"
+	keySubject               = "Subject"
+	keyTo                    = "To"
+	keyFrom                  = "From"
+	kuberaPortalImagePath    = "/kuberaPortal.png"
+	mayadataLogoImagePath    = "/mayadata-logo.png"
+	BackgroundEmailImagePath = "/bg-kubera-email.png"
+	emailTemplatePath        = "/emailTemplate.html"
 )
 
 // SendEmail will send the email to the defined email.
@@ -33,9 +33,9 @@ func SendEmail(sendTo, subject string, body string) error {
 	message.SetHeader(keyTo, sendTo)
 	message.SetHeader(keySubject, subject)
 	message.SetBody(contentType, body)
-	message.Embed("./versionedController/v1/email/kuberaPortal.png")
-	message.Embed("./versionedController/v1/email/mayadata-logo.png")
-	message.Embed("./versionedController/v1/email/bg-kubera-email.png")
+	message.Embed(types.TemplatePath + kuberaPortalImagePath)
+	message.Embed(types.TemplatePath + mayadataLogoImagePath)
+	message.Embed(types.TemplatePath + BackgroundEmailImagePath)
 	return dialer.DialAndSend(message)
 }
 
@@ -52,34 +52,23 @@ func configureEmail() (*gomail.Dialer, *gomail.Message) {
 }
 
 // GetEmailBody forms the html template body of email
-func GetEmailBody(c *gin.Context, link string) *bytes.Buffer {
+func GetEmailBody(userName, link string) (*bytes.Buffer, error) {
 
-	jwtUser, _ := c.Get("userInfo")
-	jwtUserInfo := jwtUser.(*models.PublicUserInfo)
-
-	t, err := template.ParseFiles("./versionedController/v1/email/emailTemplate.html")
+	t, err := template.ParseFiles(types.TemplatePath + emailTemplatePath)
 	if err != nil {
-		log.Error(err)
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": "Unable to parse email template",
-		})
-		return nil
+		return nil, err
 	}
 
 	templateVar := TemplateVariables{
-		Username: jwtUserInfo.Name,
+		Username: userName,
 		Link:     link,
 	}
 
 	buf := new(bytes.Buffer)
 	err = t.Execute(buf, templateVar)
 	if err != nil {
-		log.Error(err)
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": "Unable to modify email template",
-		})
-		return nil
+		return nil, err
 	}
 
-	return buf
+	return buf, nil
 }
