@@ -381,8 +381,8 @@ func (s *Server) GenerateVerificationLink(c *gin.Context, email string) string {
 	}
 	jwtUserInfo := jwtUser.(*models.PublicUserInfo)
 
-	if jwtUserInfo.IsEmailVerified == true {
-		s.redirectError(c, errors.New("Already Verified"))
+	if jwtUserInfo.IsEmailVerified {
+		s.redirectError(c, errors.New("Email is already verified"))
 		return ""
 	}
 

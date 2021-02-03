@@ -6,6 +6,7 @@ import (
 	log "github.com/golang/glog"
 
 	"github.com/gin-gonic/gin"
+	"github.com/mayadata-io/kubera-auth/pkg/errors"
 	"github.com/mayadata-io/kubera-auth/pkg/generates"
 	"github.com/mayadata-io/kubera-auth/pkg/models"
 	"github.com/mayadata-io/kubera-auth/pkg/types"
@@ -37,12 +38,19 @@ func (emailController *EmailController) Post(c *gin.Context) {
 	if err != nil {
 		log.Error(err)
 		c.JSON(http.StatusNotAcceptable, gin.H{
-			"message": "Unable to parse JSON",
+			"error": "Unable to parse JSON",
 		})
 		return
 	}
 
-	jwtUser, _ := c.Get(types.UserInfoKey)
+	jwtUser, exists := c.Get(types.UserInfoKey)
+	if !exists {
+		log.Errorln(errors.ErrInvalidAccessToken)
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "Unable to get user info from JWT",
+		})
+		return
+	}
 	jwtUserInfo := jwtUser.(*models.PublicUserInfo)
 
 	link := controller.Server.GenerateVerificationLink(c, emailController.model.Email)
@@ -54,7 +62,7 @@ func (emailController *EmailController) Post(c *gin.Context) {
 	if err != nil {
 		log.Error(err)
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": "Unable to parse email template",
+			"error": err.Error(),
 		})
 		return
 	}
@@ -63,13 +71,13 @@ func (emailController *EmailController) Post(c *gin.Context) {
 	if err != nil {
 		log.Error(err)
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": "Unable to send email",
+			"error": err.Error(),
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Verification Email sent",
+		"message": "Verification email sent",
 	})
 }
 
@@ -80,8 +88,8 @@ func (emailController *EmailController) Get(c *gin.Context) {
 	jwtUserInfo, err := controller.Server.Manager.ParseToken(token)
 	if err != nil {
 		log.Error(err)
-		c.JSON(http.StatusNetworkAuthenticationRequired, gin.H{
-			"message": "Invalid Token",
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": err.Error(),
 		})
 		return
 	}

@@ -33,8 +33,10 @@ var (
 		email.New(),
 	}
 	unauthenticatedLinks = map[string][]string{
-		"/v1" + v1.TokenRoute: {http.MethodPost, http.MethodGet},
-		"/v1" + v1.EmailRoute: {http.MethodGet},
+		"/v1" + v1.TokenRoute:         {http.MethodPost, http.MethodGet},
+		"/v1" + v1.EmailRoute:         {http.MethodGet},
+		"/v1" + "/oauth":              {http.MethodGet},
+		"/v1" + v1.ConfigurationRoute: {http.MethodGet},
 	}
 )
 
