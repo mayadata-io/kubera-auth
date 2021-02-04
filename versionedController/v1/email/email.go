@@ -60,7 +60,7 @@ func (emailController *EmailController) Post(c *gin.Context) {
 
 	buf, err := generates.GetEmailBody(jwtUserInfo.Name, link)
 	if err != nil {
-		log.Error(err)
+		log.Error("Error occurred while getting email body for user: " + jwtUserInfo.UID + "error: " + err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})
@@ -69,7 +69,7 @@ func (emailController *EmailController) Post(c *gin.Context) {
 
 	err = generates.SendEmail(emailController.model.Email, "Email Verification", buf.String())
 	if err != nil {
-		log.Error(err)
+		log.Error("Error occurred while sending email for user: " + jwtUserInfo.UID + "error: " + err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})
@@ -87,7 +87,7 @@ func (emailController *EmailController) Get(c *gin.Context) {
 
 	jwtUserInfo, err := controller.Server.Manager.ParseToken(token)
 	if err != nil {
-		log.Error(err)
+		log.Error("Error occurred while parsing jwt token error: " + err.Error())
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"error": err.Error(),
 		})
