@@ -223,9 +223,9 @@ func (m *Manager) CreateUser(user *models.UserCredentials) (*models.PublicUserIn
 }
 
 // GenerateAuthToken generate the authorization token(code)
-func (m *Manager) GenerateAuthToken(tgr *TokenGenerateRequest) (*models.Token, error) {
+func (m *Manager) GenerateAuthToken(tgr *TokenGenerateRequest, jwtType models.TokenType) (*models.Token, error) {
 
-	ti := models.NewToken()
+	ti := models.NewToken(jwtType)
 
 	createAt := time.Now()
 	td := &generates.GenerateBasic{
@@ -259,7 +259,14 @@ func (m *Manager) ValidateToken(tokenString string) (valid bool, err error) {
 // ParseToken validates the token
 func (m *Manager) ParseToken(tokenString string) (userInfo *models.PublicUserInfo, err error) {
 	userInfo, err = m.accessGenerate.Parse(tokenString)
-	return
+	if err != nil {
+		return nil, err
+	}
+	user, err := m.GetUserByUID(userInfo.UID)
+	if err != nil {
+		return nil, err
+	}
+	return user.GetPublicInfo(), nil
 }
 
 // UpdateUserDetails get the user information
@@ -278,6 +285,9 @@ func (m *Manager) UpdateUserDetails(user *models.UserCredentials) (*models.Publi
 	}
 	if user.GetUserName() != "" {
 		storedUser.UserName = user.GetUserName()
+	}
+	if user.IsEmailVerified {
+		storedUser.IsEmailVerified = user.IsEmailVerified
 	}
 
 	exists, err := m.CheckUserExists(storedUser)

@@ -23,12 +23,13 @@ import (
 
 // JWTAccessClaims jwt claims
 type JWTAccessClaims struct {
-	ID       bson.ObjectId `json:"_id,omitempty"`
-	UID      string        `json:"uid,omitempty"`
-	Role     models.Role   `json:"role,omitempty"`
-	UserName string        `json:"username,omitempty"`
-	Email    *string       `json:"email,omitempty"`
-	Name     string        `json:"name,omitempty"`
+	ID       bson.ObjectId    `json:"_id,omitempty"`
+	UID      string           `json:"uid,omitempty"`
+	Role     models.Role      `json:"role,omitempty"`
+	UserName string           `json:"username,omitempty"`
+	Email    *string          `json:"email,omitempty"`
+	Name     string           `json:"name,omitempty"`
+	Type     models.TokenType `json:"type"`
 	jwt.StandardClaims
 }
 
@@ -93,6 +94,7 @@ func (a *JWTAccessGenerate) Token(data *GenerateBasic) (string, error) {
 		UserName: data.UserInfo.GetUserName(),
 		Email:    data.UserInfo.GetEmail(),
 		Name:     data.UserInfo.GetName(),
+		Type:     data.TokenInfo.Type,
 		StandardClaims: jwt.StandardClaims{
 			IssuedAt:  time.Now().Unix(),
 			ExpiresAt: data.TokenInfo.GetAccessCreateAt().Add(data.TokenInfo.GetAccessExpiresIn()).Unix(),

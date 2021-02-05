@@ -38,7 +38,7 @@ func NewUserStore(cfg *Config, ucfgs ...*UserConfig) (*UserStore, error) {
 		}
 		err = session.Login(&cred)
 		if err != nil {
-			log.Errorln("Eror connecting database error", err)
+			log.Errorln("Error connecting database error", err)
 			return nil, err
 		}
 	}

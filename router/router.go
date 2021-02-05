@@ -13,6 +13,7 @@ import (
 	"github.com/mayadata-io/kubera-auth/pkg/types"
 	v1 "github.com/mayadata-io/kubera-auth/versionedController/v1"
 	"github.com/mayadata-io/kubera-auth/versionedController/v1/configuration"
+	"github.com/mayadata-io/kubera-auth/versionedController/v1/email"
 	"github.com/mayadata-io/kubera-auth/versionedController/v1/login"
 	"github.com/mayadata-io/kubera-auth/versionedController/v1/password"
 	"github.com/mayadata-io/kubera-auth/versionedController/v1/user"
@@ -29,6 +30,13 @@ var (
 		user.New(),
 		password.New(),
 		configuration.New(),
+		email.New(),
+	}
+	unauthenticatedLinks = map[string][]string{
+		"/v1" + v1.TokenRoute:         {http.MethodPost, http.MethodGet},
+		"/v1" + v1.EmailRoute:         {http.MethodGet},
+		"/v1" + "/oauth":              {http.MethodGet},
+		"/v1" + v1.ConfigurationRoute: {http.MethodGet},
 	}
 )
 
@@ -50,7 +58,8 @@ func New() *gin.Engine {
 	router.Use(cors.New(config))
 
 	v1.InitializeServer()
-	routerV1 := router.Group("v1")
+	routerV1 := router.Group("/v1")
+	routerV1.Use(Middleware)
 	{
 		routerV1.GET(githubLoginRoute, CallbackRequest)
 		routerV1.GET(healthCheckRoute, HealthCheck)
@@ -108,4 +117,28 @@ func CallbackRequest(c *gin.Context) {
 	}
 	values.Set("access_token", ti.GetAccess())
 	c.Redirect(http.StatusFound, u+values.Encode())
+}
+
+//Middleware ...
+func Middleware(c *gin.Context) {
+
+	for path, methods := range unauthenticatedLinks {
+		if path == c.Request.URL.Path {
+			for _, method := range methods {
+				if method == c.Request.Method {
+					return
+				}
+			}
+		}
+	}
+
+	userInfo, err := v1.Server.GetUserFromToken(c.Request)
+	if err != nil {
+		c.Abort()
+		c.JSON(http.StatusNetworkAuthenticationRequired, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	c.Set(types.UserInfoKey, userInfo)
 }

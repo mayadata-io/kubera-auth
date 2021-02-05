@@ -5,4 +5,5 @@ const (
 	UserRoute          string = "/user"
 	PasswordRoute      string = "/password"
 	ConfigurationRoute string = "/configuration"
+	EmailRoute         string = "/email"
 )

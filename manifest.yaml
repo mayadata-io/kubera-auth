@@ -24,6 +24,8 @@ data:
   PORTAL_URL: "https://kubera-core-ui:9091"
   DISABLE_LOCALAUTH: "false"
   DISABLE_GITHUBAUTH: "true"
+  EMAIL_USERNAME: "test@mayadata.io"
+  EMAIL_PASSWORD: "test@123"
 ---
 apiVersion: apps/v1
 kind: Deployment
