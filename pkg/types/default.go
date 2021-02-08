@@ -15,4 +15,6 @@ var (
 	GithubState                string = "github"
 	UserInfoKey                string = "userInfo"
 	TemplatePath               string = "./templates"
+	TrueValue                  bool   = true
+	FalseValue                 bool   = false
 )

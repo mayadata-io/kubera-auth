@@ -9,6 +9,7 @@ import (
 	"golang.org/x/oauth2"
 
 	"github.com/mayadata-io/kubera-auth/pkg/models"
+	"github.com/mayadata-io/kubera-auth/pkg/types"
 	controller "github.com/mayadata-io/kubera-auth/versionedController/v1"
 )
 
@@ -27,18 +28,18 @@ func getUserFromToken(c *gin.Context, token *oauth2.Token) (*models.UserCredenti
 	currTime := time.Now()
 
 	user := models.UserCredentials{
-		Name:            githubUser.GetName(),
+		Name:            githubUser.Name,
 		Email:           githubUser.Email,
-		IsEmailVerified: false,
+		IsEmailVerified: &types.FalseValue,
 		Kind:            models.GithubAuth,
 		Role:            models.RoleUser,
 		State:           models.StateActive,
-		SocialAuthID:    githubUser.GetID(),
-		LoggedIn:        true,
+		SocialAuthID:    githubUser.ID,
+		LoggedIn:        &types.TrueValue,
 		CreatedAt:       &currTime,
 	}
 	if githubUser.Email != nil {
-		user.IsEmailVerified = true
+		user.IsEmailVerified = &types.TrueValue
 	}
 	return &user, err
 }

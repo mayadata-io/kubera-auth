@@ -58,9 +58,9 @@ func (emailController *EmailController) Post(c *gin.Context) {
 		return
 	}
 
-	buf, err := generates.GetEmailBody(jwtUserInfo.Name, link)
+	buf, err := generates.GetEmailBody(jwtUserInfo.GetName(), link)
 	if err != nil {
-		log.Error("Error occurred while getting email body for user: " + jwtUserInfo.UID + "error: " + err.Error())
+		log.Error("Error occurred while getting email body for user: " + jwtUserInfo.GetUID() + "error: " + err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})
@@ -69,7 +69,7 @@ func (emailController *EmailController) Post(c *gin.Context) {
 
 	err = generates.SendEmail(emailController.model.Email, "Email Verification", buf.String())
 	if err != nil {
-		log.Error("Error occurred while sending email for user: " + jwtUserInfo.UID + "error: " + err.Error())
+		log.Error("Error occurred while sending email for user: " + jwtUserInfo.GetUID() + "error: " + err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})
@@ -85,7 +85,7 @@ func (emailController *EmailController) Post(c *gin.Context) {
 func (emailController *EmailController) Get(c *gin.Context) {
 	token := c.Query("access")
 
-	jwtUserInfo, err := controller.Server.Manager.ParseToken(token)
+	jwtUserInfo, err := controller.Server.GetUserFromToken(token)
 	if err != nil {
 		log.Error("Error occurred while parsing jwt token error: " + err.Error())
 		c.JSON(http.StatusUnauthorized, gin.H{

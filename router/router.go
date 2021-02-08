@@ -2,7 +2,7 @@ package router
 
 import (
 	"net/http"
-	"net/url"
+	"strings"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -80,7 +80,6 @@ func CallbackRequest(c *gin.Context) {
 	var user *models.UserCredentials
 	var err error
 	u := types.PortalURL + "/login?"
-	values := url.Values{}
 	state := c.Query("state")
 
 	switch state {
@@ -106,21 +105,15 @@ func CallbackRequest(c *gin.Context) {
 		}
 	}
 
-	ti, err := v1.Server.SocialLoginRequest(c, user)
-	if err != nil {
-		log.Errorln("Error logging in", err)
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
-		c.Redirect(http.StatusFound, u)
-		return
-	}
-	values.Set("access_token", ti.GetAccess())
-	c.Redirect(http.StatusFound, u+values.Encode())
+	v1.Server.SocialLoginRequest(c, user, u)
 }
 
 //Middleware ...
 func Middleware(c *gin.Context) {
+
+	auth := c.Request.Header.Get("Authorization")
+	prefix := "Bearer "
+	token := ""
 
 	for path, methods := range unauthenticatedLinks {
 		if path == c.Request.URL.Path {
@@ -132,10 +125,22 @@ func Middleware(c *gin.Context) {
 		}
 	}
 
-	userInfo, err := v1.Server.GetUserFromToken(c.Request)
+	if auth != "" && strings.HasPrefix(auth, prefix) {
+		token = auth[len(prefix):]
+	}
+
+	if token == "" {
+		c.Abort()
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "Invalid Token",
+		})
+		return
+	}
+
+	userInfo, err := v1.Server.GetUserFromToken(token)
 	if err != nil {
 		c.Abort()
-		c.JSON(http.StatusNetworkAuthenticationRequired, gin.H{
+		c.JSON(http.StatusUnauthorized, gin.H{
 			"error": err.Error(),
 		})
 		return

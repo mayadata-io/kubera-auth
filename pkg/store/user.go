@@ -5,7 +5,7 @@ import (
 
 	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
-	log "github.com/golang/glog"
+	"github.com/prometheus/common/log"
 
 	"github.com/mayadata-io/kubera-auth/pkg/models"
 	"github.com/mayadata-io/kubera-auth/pkg/types"

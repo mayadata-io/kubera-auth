@@ -13,6 +13,7 @@ require (
 	github.com/googleapis/gnostic v0.4.1 // indirect
 	github.com/imdario/mergo v0.3.11 // indirect
 	github.com/json-iterator/go v1.1.10 // indirect
+	github.com/prometheus/common v0.15.0
 	go.mongodb.org/mongo-driver v1.4.2
 	golang.org/x/crypto v0.0.0-20201012173705-84dcc777aaee
 	golang.org/x/oauth2 v0.0.0-20200902213428-5d25da1a8d43
