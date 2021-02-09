@@ -52,7 +52,7 @@ func New() *gin.Engine {
 	gin.EnableJsonDecoderDisallowUnknownFields()
 	router := gin.Default()
 	config := cors.DefaultConfig()
-	config.AddAllowHeaders("Access-Control-Allow-Origin", "Authorization")
+	config.AddAllowHeaders("Access-Control-Allow-Origin", types.AuthHeaderKey)
 	config.AllowAllOrigins = true
 
 	router.Use(cors.New(config))
@@ -111,8 +111,8 @@ func CallbackRequest(c *gin.Context) {
 //Middleware ...
 func Middleware(c *gin.Context) {
 
-	auth := c.Request.Header.Get("Authorization")
-	prefix := "Bearer "
+	auth := c.Request.Header.Get(types.AuthHeaderKey)
+	prefix := types.AuthHeaderPrefix
 	token := ""
 
 	for path, methods := range unauthenticatedLinks {

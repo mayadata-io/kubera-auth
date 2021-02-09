@@ -14,7 +14,7 @@ import (
 // CreateUser get the user information
 func CreateUser(userStore *store.UserStore, user *models.UserCredentials) (*models.PublicUserInfo, error) {
 
-	exists, err := CheckUserExists(userStore, user)
+	exists, err := IsUserExists(userStore, user)
 	if err != nil {
 		return nil, err
 	} else if exists == true {

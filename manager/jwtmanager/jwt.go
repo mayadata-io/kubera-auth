@@ -26,12 +26,6 @@ var (
 	DefaultTokenCfg = &Config{AccessTokenExp: time.Hour * 24}
 )
 
-// ValidateToken validates the token
-func ValidateToken(accessGenerate *generates.JWTAccessGenerate, tokenString string) (valid bool, err error) {
-	valid, err = accessGenerate.Validate(tokenString)
-	return
-}
-
 // ParseToken validates the token
 func ParseToken(userStore *store.UserStore, accessGenerate *generates.JWTAccessGenerate, tokenString string) (userInfo *models.PublicUserInfo, err error) {
 	userInfo, err = accessGenerate.Parse(tokenString)

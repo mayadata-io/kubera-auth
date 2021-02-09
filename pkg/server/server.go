@@ -80,29 +80,29 @@ func (s *Server) LocalLoginRequest(c *gin.Context, username, password string) {
 		return
 	}
 
-	ti, err := loginmanager.LocalLoginUser(s.userStore, s.accessGenerate, username, password)
+	tokenInfo, err := loginmanager.LocalLoginUser(s.userStore, s.accessGenerate, username, password)
 	if err != nil {
 		s.redirectError(c, err)
 		return
 	}
 
-	s.redirect(c, s.getTokenData(ti))
+	s.redirect(c, s.getTokenData(tokenInfo))
 	return
 }
 
 //SocialLoginRequest logs in the user with github or gmail
-func (s *Server) SocialLoginRequest(c *gin.Context, user *models.UserCredentials, u string) {
+func (s *Server) SocialLoginRequest(c *gin.Context, user *models.UserCredentials, urlString string) {
 
 	values := url.Values{}
-	ti, err := loginmanager.SocialLoginUser(s.userStore, s.accessGenerate, user)
+	tokenInfo, err := loginmanager.SocialLoginUser(s.userStore, s.accessGenerate, user)
 	if err != nil {
 		log.Errorln("Error logging in ", err)
 		s.redirectError(c, err)
 		return
 	}
 
-	values.Set("access_token", ti.GetAccess())
-	c.Redirect(http.StatusFound, u+values.Encode())
+	values.Set("access_token", tokenInfo.GetAccess())
+	c.Redirect(http.StatusFound, urlString+values.Encode())
 	return
 }
 
@@ -199,8 +199,7 @@ func (s *Server) responseErrorHandler(re *errors.Response) {
 
 // GetUserFromToken gets the user from token
 func (s *Server) GetUserFromToken(token string) (*models.PublicUserInfo, error) {
-	userInfo, err := jwtmanager.ParseToken(s.userStore, s.accessGenerate, token)
-	return userInfo, err
+	return jwtmanager.ParseToken(s.userStore, s.accessGenerate, token)
 }
 
 // UpdatePasswordRequest validates the request
@@ -338,40 +337,61 @@ func (s *Server) GetUserByUserName(c *gin.Context, userID string) {
 	s.redirect(c, storedUser.GetPublicInfo())
 }
 
-func (s *Server) GenerateVerificationLink(c *gin.Context, email string) string {
-
+// SendVerificationLink sends the verification link in the desired email
+func (s *Server) SendVerificationLink(c *gin.Context, email string) {
 	jwtUser, exists := c.Get(types.UserInfoKey)
 	if !exists {
 		s.redirectError(c, errors.ErrInvalidAccessToken)
-		return ""
+		return
 	}
 	jwtUserInfo := jwtUser.(*models.PublicUserInfo)
 
 	if jwtUserInfo.GetIsEmailVerified() {
 		s.redirectError(c, errors.New("Email is already verified"))
-		return ""
+		return
 	}
 
 	jwtUserInfo.Email = &email
 	updatedUserInfo, err := usermanager.UpdateUserDetails(s.userStore, jwtUserInfo.GetUserCredentials())
 	if err != nil {
 		s.redirectError(c, err)
-		return ""
+		return
 	}
 
 	tgr := &jwtmanager.TokenGenerateRequest{
 		UserInfo:       updatedUserInfo,
-		AccessTokenExp: time.Minute * 10,
+		AccessTokenExp: time.Minute * types.VerificationLinkExpirationTimeUnit,
 	}
 
-	ti, err := jwtmanager.GenerateAuthToken(s.accessGenerate, tgr, models.TokenVerify)
+	tokenInfo, err := jwtmanager.GenerateAuthToken(s.accessGenerate, tgr, models.TokenVerify)
 	if err != nil {
 		s.redirectError(c, err)
-		return ""
+		return
 	}
 
-	link := types.PortalURL + "/api/auth/v1/email?access=" + ti.Access
-	return link
+	link := types.PortalURL + "/api/auth/v1/email?access=" + tokenInfo.Access
+
+	buf, err := generates.GetEmailBody(jwtUserInfo.GetName(), link)
+	if err != nil {
+		log.Error("Error occurred while getting email body for user: " + jwtUserInfo.GetUID() + "error: " + err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	err = generates.SendEmail(email, "Email Verification", buf.String())
+	if err != nil {
+		log.Error("Error occurred while sending email for user: " + jwtUserInfo.GetUID() + "error: " + err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Verification email sent",
+	})
 }
 
 // VerifyEmail marks a user email as verified

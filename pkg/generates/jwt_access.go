@@ -141,17 +141,6 @@ func (a *JWTAccessGenerate) isHs() bool {
 	return strings.HasPrefix(a.SignedMethod.Alg(), "HS")
 }
 
-// Validate validates  the token
-func (a *JWTAccessGenerate) Validate(tokenString string) (bool, error) {
-
-	token, err := a.parseToken(tokenString)
-	if err != nil {
-		return false, err
-	}
-
-	return token.Valid, nil
-}
-
 // Parse parses a UserName from a token
 func (a *JWTAccessGenerate) Parse(tokenString string) (*models.PublicUserInfo, error) {
 

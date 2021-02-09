@@ -146,8 +146,8 @@ func (configurationController *Controller) Get(c *gin.Context) {
 }
 
 func getTokenFromHeader(r *http.Request) (string, error) {
-	auth := r.Header.Get("Authorization")
-	prefix := "Bearer "
+	auth := r.Header.Get(types.AuthHeaderKey)
+	prefix := types.AuthHeaderPrefix
 	token := ""
 
 	if auth != "" && strings.HasPrefix(auth, prefix) {

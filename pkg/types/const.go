@@ -7,4 +7,5 @@ var (
 	GITHUB_CLIENT_SECRET string = "GITHUB_CLIENT_SECRET"
 	DISABLE_LOCALAUTH    string = "DISABLE_LOCALAUTH"
 	DISABLE_GITHUBAUTH   string = "DISABLE_GITHUBAUTH"
+	BEARER               string = "Bearer"
 )

@@ -11,8 +11,8 @@ import (
 	"github.com/mayadata-io/kubera-auth/pkg/utils/random"
 )
 
-// CheckUserExists get the user information
-func CheckUserExists(userStore *store.UserStore, user *models.UserCredentials) (bool, error) {
+// IsUserExists get the user information
+func IsUserExists(userStore *store.UserStore, user *models.UserCredentials) (bool, error) {
 
 	exists := true
 	_, err := userStore.GetUser(bson.M{"username": user.GetUserName()})

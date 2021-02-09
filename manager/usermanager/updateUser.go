@@ -31,7 +31,7 @@ func UpdateUserDetails(userStore *store.UserStore, user *models.UserCredentials)
 		storedUser.IsEmailVerified = user.IsEmailVerified
 	}
 
-	exists, err := CheckUserExists(userStore, storedUser)
+	exists, err := IsUserExists(userStore, storedUser)
 	if err != nil {
 		return nil, err
 	} else if exists == false {
