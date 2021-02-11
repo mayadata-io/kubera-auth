@@ -43,8 +43,7 @@ func NewServer(cfg *Config) *Server {
 
 // Server Provide authorization server
 type Server struct {
-	Config *Config
-	// Manager        *manage.Manager
+	Config         *Config
 	GithubConfig   oauth.SocialAuthConfig
 	accessGenerate *generates.JWTAccessGenerate
 	userStore      *store.UserStore
@@ -75,8 +74,9 @@ func (s *Server) redirect(c *gin.Context, data interface{}) {
 func (s *Server) LocalLoginRequest(c *gin.Context, username, password string) {
 
 	if username == "" || password == "" {
-		log.Errorln("Username or Password cannot be blank")
-		s.redirectError(c, errors.ErrInvalidRequest)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Username or password cannot be empty",
+		})
 		return
 	}
 

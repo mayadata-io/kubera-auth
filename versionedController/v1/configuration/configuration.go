@@ -133,6 +133,7 @@ func (configurationController *Controller) Get(c *gin.Context) {
 
 	tokenString, err := getTokenFromHeader(c.Request)
 	if err != nil {
+		log.Errorln("Invalid Token: Unable to parse jwt")
 		return
 	}
 
@@ -155,7 +156,7 @@ func getTokenFromHeader(r *http.Request) (string, error) {
 	}
 
 	if token == "" {
-		return "", errors.ErrInvalidAccessToken
+		return token, errors.ErrInvalidAccessToken
 	}
 
 	return token, nil
