@@ -19,21 +19,22 @@ func init() {
 
 //UserCredentials contains the user information
 type UserCredentials struct {
-	ID              bson.ObjectId `bson:"_id,omitempty"`
-	UID             *string       `bson:"uid,omitempty"`
-	UserName        *string       `bson:"username,omitempty"`
-	Password        *string       `bson:"password,omitempty"`
-	Email           *string       `bson:"email,omitempty"`
-	IsEmailVerified *bool         `bson:"is_email_verified,omitempty"`
-	Name            *string       `bson:"name,omitempty"`
-	Kind            AuthType      `bson:"kind,omitempty"`
-	Role            Role          `bson:"role,omitempty"`
-	LoggedIn        *bool         `bson:"logged_in,omitempty"`
-	SocialAuthID    *int64        `bson:"social_auth_id,omitempty"`
-	CreatedAt       *time.Time    `bson:"created_at,omitempty"`
-	UpdatedAt       *time.Time    `bson:"updated_at,omitempty"`
-	RemovedAt       *time.Time    `bson:"removed_at,omitempty"`
-	State           State         `bson:"state,omitempty"`
+	ID              bson.ObjectId   `bson:"_id,omitempty"`
+	UID             *string         `bson:"uid,omitempty"`
+	UserName        *string         `bson:"username,omitempty"`
+	Password        *string         `bson:"password,omitempty"`
+	Email           *string         `bson:"email,omitempty"`
+	IsEmailVerified *bool           `bson:"is_email_verified,omitempty"`
+	Name            *string         `bson:"name,omitempty"`
+	Kind            AuthType        `bson:"kind,omitempty"`
+	Role            Role            `bson:"role,omitempty"`
+	LoggedIn        *bool           `bson:"logged_in,omitempty"`
+	SocialAuthID    *int64          `bson:"social_auth_id,omitempty"`
+	CreatedAt       *time.Time      `bson:"created_at,omitempty"`
+	UpdatedAt       *time.Time      `bson:"updated_at,omitempty"`
+	RemovedAt       *time.Time      `bson:"removed_at,omitempty"`
+	State           State           `bson:"state,omitempty"`
+	OnBoardingState OnBoardingState `bson:"on_boarding_state,omitempty"`
 }
 
 //AuthType determines the type of authentication opted by the user for login
@@ -61,6 +62,17 @@ const (
 	RoleUser Role = "user"
 )
 
+// OnBoardingState helps UI to define the state at which the user is currently while being onBoarded
+type OnBoardingState string
+
+const (
+	BoardingStateOne   = "1"
+	BoardingStateTwo   = "2"
+	BoardingStateThree = "3"
+	BoardingStateFour  = "4"
+	BoardingStateFive  = "5"
+)
+
 var adminUID = uuid.Must(uuid.NewRandom()).String()
 
 //DefaultUser is the admin user created by default
@@ -76,20 +88,21 @@ var DefaultUser *UserCredentials = &UserCredentials{
 
 //PublicUserInfo displays the information of the user that is publicly available
 type PublicUserInfo struct {
-	ID              bson.ObjectId `json:"_id"`
-	UID             *string       `json:"uid"`
-	UserName        *string       `json:"username"`
-	Email           *string       `json:"email"`
-	IsEmailVerified *bool         `bson:"is_email_verified,omitempty"`
-	Name            *string       `json:"name"`
-	Kind            AuthType      `json:"kind"`
-	Role            Role          `json:"role"`
-	LoggedIn        *bool         `json:"logged_in"`
-	SocialAuthID    *int64        `bson:"social_auth_id,omitempty"`
-	CreatedAt       *time.Time    `json:"created_at"`
-	UpdatedAt       *time.Time    `json:"updated_at"`
-	RemovedAt       *time.Time    `json:"removed_at"`
-	State           State         `json:"state"`
+	ID              bson.ObjectId   `json:"_id"`
+	UID             *string         `json:"uid"`
+	UserName        *string         `json:"username"`
+	Email           *string         `json:"email"`
+	IsEmailVerified *bool           `bson:"is_email_verified,omitempty"`
+	Name            *string         `json:"name"`
+	Kind            AuthType        `json:"kind"`
+	Role            Role            `json:"role"`
+	LoggedIn        *bool           `json:"logged_in"`
+	SocialAuthID    *int64          `bson:"social_auth_id,omitempty"`
+	CreatedAt       *time.Time      `json:"created_at"`
+	UpdatedAt       *time.Time      `json:"updated_at"`
+	RemovedAt       *time.Time      `json:"removed_at"`
+	State           State           `json:"state"`
+	OnBoardingState OnBoardingState `bson:"on_boarding_state,omitempty"`
 }
 
 //State is the current state of the database entry of the user
@@ -213,12 +226,20 @@ func (u *UserCredentials) GetRemovedAt() time.Time {
 	return *u.RemovedAt
 }
 
-// GetState user password
+// GetState gets the user state
 func (u *UserCredentials) GetState() State {
 	if u == nil {
 		return ""
 	}
 	return u.State
+}
+
+// GetOnBoardingState gets the state the user is presnt for onboarding process
+func (u *UserCredentials) GetOnBoardingState() OnBoardingState {
+	if u == nil {
+		return ""
+	}
+	return u.OnBoardingState
 }
 
 // GetPublicInfo fetches the pubicUserInfo from User
@@ -237,6 +258,7 @@ func (u *UserCredentials) GetPublicInfo() *PublicUserInfo {
 		UpdatedAt:       u.UpdatedAt,
 		RemovedAt:       u.RemovedAt,
 		State:           u.State,
+		OnBoardingState: u.OnBoardingState,
 	}
 }
 
@@ -349,6 +371,14 @@ func (u *PublicUserInfo) GetState() State {
 	return u.State
 }
 
+// GetOnBoardingState gets the state the user is presnt for onboarding process
+func (u *PublicUserInfo) GetOnBoardingState() OnBoardingState {
+	if u == nil {
+		return ""
+	}
+	return u.OnBoardingState
+}
+
 // GetUserCredentials converts the struct into UserCredentials
 func (u *PublicUserInfo) GetUserCredentials() *UserCredentials {
 	return &UserCredentials{
@@ -365,5 +395,6 @@ func (u *PublicUserInfo) GetUserCredentials() *UserCredentials {
 		UpdatedAt:       u.UpdatedAt,
 		RemovedAt:       u.RemovedAt,
 		State:           u.State,
+		OnBoardingState: u.OnBoardingState,
 	}
 }

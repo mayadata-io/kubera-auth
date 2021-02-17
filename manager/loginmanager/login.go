@@ -51,10 +51,7 @@ func SocialLoginUser(userStore *store.UserStore, accessGenerate *generates.JWTAc
 		return nil, err
 	} else {
 		// If user exists
-		storedUser.Email = user.Email
-		storedUser.Name = user.Name
 		storedUser.LoggedIn = &types.TrueValue
-
 		err = userStore.UpdateUser(storedUser)
 		if err != nil {
 			return nil, err
