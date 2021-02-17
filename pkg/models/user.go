@@ -63,14 +63,13 @@ const (
 )
 
 // OnBoardingState helps UI to define the state at which the user is currently while being onBoarded
-type OnBoardingState string
+type OnBoardingState int
 
 const (
-	BoardingStateOne   = "1"
-	BoardingStateTwo   = "2"
-	BoardingStateThree = "3"
-	BoardingStateFour  = "4"
-	BoardingStateFive  = "5"
+	BoardingStateSignup                OnBoardingState = 1 << iota // Signup started (EmailNotVerified)
+	BoardingStateEmailVerified                                     // EmailVerified
+	BoardingStateVerifiedAndComplete                               // VerifiedAndComplete
+	BoardingStateUnverifiedAndComplete                             // UnverifiedAndComplete
 )
 
 var adminUID = uuid.Must(uuid.NewRandom()).String()
@@ -237,7 +236,7 @@ func (u *UserCredentials) GetState() State {
 // GetOnBoardingState gets the state the user is presnt for onboarding process
 func (u *UserCredentials) GetOnBoardingState() OnBoardingState {
 	if u == nil {
-		return ""
+		return 0
 	}
 	return u.OnBoardingState
 }
@@ -374,7 +373,7 @@ func (u *PublicUserInfo) GetState() State {
 // GetOnBoardingState gets the state the user is presnt for onboarding process
 func (u *PublicUserInfo) GetOnBoardingState() OnBoardingState {
 	if u == nil {
-		return ""
+		return 0
 	}
 	return u.OnBoardingState
 }
