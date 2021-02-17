@@ -92,7 +92,7 @@ func (a *JWTAccessGenerate) Token(data *GenerateBasic) (string, error) {
 		UID:      data.UserInfo.GetUID(),
 		Role:     data.UserInfo.GetRole(),
 		UserName: data.UserInfo.GetUserName(),
-		Email:    data.UserInfo.GetEmail(),
+		Email:    data.UserInfo.Email,
 		Name:     data.UserInfo.GetName(),
 		Type:     data.TokenInfo.Type,
 		StandardClaims: jwt.StandardClaims{
@@ -141,17 +141,6 @@ func (a *JWTAccessGenerate) isHs() bool {
 	return strings.HasPrefix(a.SignedMethod.Alg(), "HS")
 }
 
-// Validate validates  the token
-func (a *JWTAccessGenerate) Validate(tokenString string) (bool, error) {
-
-	token, err := a.parseToken(tokenString)
-	if err != nil {
-		return false, err
-	}
-
-	return token.Valid, nil
-}
-
 // Parse parses a UserName from a token
 func (a *JWTAccessGenerate) Parse(tokenString string) (*models.PublicUserInfo, error) {
 
@@ -164,7 +153,7 @@ func (a *JWTAccessGenerate) Parse(tokenString string) (*models.PublicUserInfo, e
 
 	if claims, ok := token.Claims.(*JWTAccessClaims); ok && token.Valid {
 		userInfo.Role = claims.Role
-		userInfo.UID = claims.UID
+		userInfo.UID = &claims.UID
 		userInfo.ID = claims.ID
 		return userInfo, nil
 	}

@@ -52,7 +52,7 @@ func (user *UserController) Patch(c *gin.Context) {
 		return
 	}
 
-	controller.Server.ResetPasswordRequest(c, user.model.Password, user.model.UserName)
+	controller.Server.ResetPasswordRequest(c, user.model.GetPassword(), user.model.GetUserName())
 	return
 }
 

@@ -3,11 +3,13 @@ package configuration
 import (
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	log "github.com/golang/glog"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	"github.com/mayadata-io/kubera-auth/pkg/errors"
 	"github.com/mayadata-io/kubera-auth/pkg/k8s"
 	"github.com/mayadata-io/kubera-auth/pkg/models"
 	"github.com/mayadata-io/kubera-auth/pkg/types"
@@ -38,7 +40,13 @@ func New() *Controller {
 //Put updates the password of the concerned user
 func (configurationController *Controller) Put(c *gin.Context) {
 
-	userInfo, err := controller.Server.GetUserFromToken(c.Request)
+	tokenString, err := getTokenFromHeader(c.Request)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, err.Error())
+		return
+	}
+
+	userInfo, err := controller.Server.GetUserFromToken(tokenString)
 	if err != nil || userInfo == nil {
 		c.JSON(http.StatusUnauthorized, err.Error())
 		return
@@ -123,13 +131,35 @@ func (configurationController *Controller) Get(c *gin.Context) {
 		types.DISABLE_LOCALAUTH:  controller.Server.Config.DisableLocalAuth,
 	}
 
-	userInfo, err := controller.Server.GetUserFromToken(c.Request)
+	tokenString, err := getTokenFromHeader(c.Request)
+	if err != nil {
+		log.Errorln("Invalid Token: Unable to parse jwt")
+		return
+	}
+
+	userInfo, err := controller.Server.GetUserFromToken(tokenString)
 	if err == nil && userInfo.GetRole() == models.RoleAdmin {
 		auth_data[types.GITHUB_CLIENT_ID] = controller.Server.GithubConfig.ClientID
 		auth_data[types.GITHUB_CLIENT_SECRET] = controller.Server.GithubConfig.ClientSecret
 	}
 
 	c.JSON(http.StatusOK, auth_data)
+}
+
+func getTokenFromHeader(r *http.Request) (string, error) {
+	auth := r.Header.Get(types.AuthHeaderKey)
+	prefix := types.AuthHeaderPrefix
+	token := ""
+
+	if auth != "" && strings.HasPrefix(auth, prefix) {
+		token = auth[len(prefix):]
+	}
+
+	if token == "" {
+		return token, errors.ErrInvalidAccessToken
+	}
+
+	return token, nil
 }
 
 // Register will rsgister this controller to the specified router

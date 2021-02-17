@@ -19,7 +19,7 @@ type Config struct {
 func NewConfig() *Config {
 
 	config := &Config{
-		TokenType: "Bearer",
+		TokenType: types.BEARER,
 	}
 
 	var err error
