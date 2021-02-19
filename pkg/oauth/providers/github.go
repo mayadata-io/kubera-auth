@@ -45,7 +45,8 @@ func getUserFromToken(c *gin.Context, token *oauth2.Token) (*models.UserCredenti
 		if *githubUserEmail.Primary == true {
 			user.Email = githubUserEmail.Email
 			user.IsEmailVerified = &types.TrueValue
-			user.OnBoardingState = models.BoardingStateVerifiedAndComplete
+			user.OnBoardingState = models.BoardingStateEmailVerified
+			break
 		}
 	}
 

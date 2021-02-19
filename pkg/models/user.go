@@ -66,10 +66,11 @@ const (
 type OnBoardingState int
 
 const (
-	BoardingStateSignup                OnBoardingState = 1 << iota // Signup started (EmailNotVerified)
-	BoardingStateEmailVerified                                     // EmailVerified
-	BoardingStateVerifiedAndComplete                               // VerifiedAndComplete
-	BoardingStateUnverifiedAndComplete                             // UnverifiedAndComplete
+	BoardingStateInvalid               OnBoardingState = iota // Invalid State used as zero value
+	BoardingStateSignup                                       // Signup started (EmailNotVerified)
+	BoardingStateEmailVerified                                // EmailVerified
+	BoardingStateVerifiedAndComplete                          // VerifiedAndComplete
+	BoardingStateUnverifiedAndComplete                        // UnverifiedAndComplete
 )
 
 var adminUID = uuid.Must(uuid.NewRandom()).String()
@@ -236,7 +237,7 @@ func (u *UserCredentials) GetState() State {
 // GetOnBoardingState gets the state the user is presnt for onboarding process
 func (u *UserCredentials) GetOnBoardingState() OnBoardingState {
 	if u == nil {
-		return 0
+		return BoardingStateInvalid
 	}
 	return u.OnBoardingState
 }
@@ -373,7 +374,7 @@ func (u *PublicUserInfo) GetState() State {
 // GetOnBoardingState gets the state the user is presnt for onboarding process
 func (u *PublicUserInfo) GetOnBoardingState() OnBoardingState {
 	if u == nil {
-		return 0
+		return BoardingStateInvalid
 	}
 	return u.OnBoardingState
 }
