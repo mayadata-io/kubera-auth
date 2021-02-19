@@ -19,12 +19,14 @@ func init() {
 
 //UserCredentials contains the user information
 type UserCredentials struct {
-	ID              bson.ObjectId   `bson:"_id,omitempty"`
+	ID              bson.ObjectId   `bson:"_id,omitempty",json:`
 	UID             *string         `bson:"uid,omitempty"`
 	UserName        *string         `bson:"username,omitempty"`
 	Password        *string         `bson:"password,omitempty"`
 	Email           *string         `bson:"email,omitempty"`
 	IsEmailVerified *bool           `bson:"is_email_verified,omitempty"`
+	Company         *string         `bson:"company,omitempty"`
+	CompanyRole     *string         `bson:"company_role,omitempty"`
 	Name            *string         `bson:"name,omitempty"`
 	Kind            AuthType        `bson:"kind,omitempty"`
 	Role            Role            `bson:"role,omitempty"`
@@ -92,17 +94,19 @@ type PublicUserInfo struct {
 	UID             *string         `json:"uid"`
 	UserName        *string         `json:"username"`
 	Email           *string         `json:"email"`
-	IsEmailVerified *bool           `bson:"is_email_verified,omitempty"`
+	IsEmailVerified *bool           `json:"is_email_verified,omitempty"`
+	Company         *string         `json:"company,omitempty"`
+	CompanyRole     *string         `json:"company_role,omitempty"`
 	Name            *string         `json:"name"`
 	Kind            AuthType        `json:"kind"`
 	Role            Role            `json:"role"`
 	LoggedIn        *bool           `json:"logged_in"`
-	SocialAuthID    *int64          `bson:"social_auth_id,omitempty"`
+	SocialAuthID    *int64          `json:"social_auth_id,omitempty"`
 	CreatedAt       *time.Time      `json:"created_at"`
 	UpdatedAt       *time.Time      `json:"updated_at"`
 	RemovedAt       *time.Time      `json:"removed_at"`
 	State           State           `json:"state"`
-	OnBoardingState OnBoardingState `bson:"on_boarding_state,omitempty"`
+	OnBoardingState OnBoardingState `json:"on_boarding_state,omitempty"`
 }
 
 //State is the current state of the database entry of the user
@@ -160,6 +164,22 @@ func (u *UserCredentials) GetIsEmailVerified() bool {
 		return false
 	}
 	return *u.IsEmailVerified
+}
+
+// GetCompany gets user company name
+func (u *UserCredentials) GetCompany() string {
+	if u == nil || u.Company == nil {
+		return ""
+	}
+	return *u.Company
+}
+
+// GetCompanyRole get user role in the company
+func (u *UserCredentials) GetCompanyRole() string {
+	if u == nil || u.CompanyRole == nil {
+		return ""
+	}
+	return *u.CompanyRole
 }
 
 // GetName returns user name
@@ -249,6 +269,8 @@ func (u *UserCredentials) GetPublicInfo() *PublicUserInfo {
 		UserName:        u.UserName,
 		Email:           u.Email,
 		IsEmailVerified: u.IsEmailVerified,
+		Company:         u.Company,
+		CompanyRole:     u.CompanyRole,
 		ID:              u.ID,
 		UID:             u.UID,
 		Kind:            u.Kind,
@@ -297,6 +319,22 @@ func (u *PublicUserInfo) GetIsEmailVerified() bool {
 		return false
 	}
 	return *u.IsEmailVerified
+}
+
+// GetCompany gets user company name
+func (u *PublicUserInfo) GetCompany() string {
+	if u == nil || u.Company == nil {
+		return ""
+	}
+	return *u.Company
+}
+
+// GetCompanyRole get user role in the company
+func (u *PublicUserInfo) GetCompanyRole() string {
+	if u == nil || u.CompanyRole == nil {
+		return ""
+	}
+	return *u.CompanyRole
 }
 
 // GetName returns user name
@@ -387,6 +425,8 @@ func (u *PublicUserInfo) GetUserCredentials() *UserCredentials {
 		UserName:        u.UserName,
 		Email:           u.Email,
 		IsEmailVerified: u.IsEmailVerified,
+		Company:         u.Company,
+		CompanyRole:     u.CompanyRole,
 		Name:            u.Name,
 		Kind:            u.Kind,
 		Role:            u.Role,

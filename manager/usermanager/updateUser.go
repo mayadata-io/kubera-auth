@@ -2,6 +2,7 @@ package usermanager
 
 import (
 	"github.com/globalsign/mgo/bson"
+	"github.com/imdario/mergo"
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/mayadata-io/kubera-auth/pkg/errors"
@@ -18,24 +19,15 @@ func UpdateUserDetails(userStore *store.UserStore, user *models.UserCredentials)
 		return nil, errors.ErrInvalidUser
 	}
 
-	if user.Email != nil {
-		storedUser.Email = user.Email
-	}
-	if user.Name != nil {
-		storedUser.Name = user.Name
-	}
-	if user.UserName != nil {
-		storedUser.UserName = user.UserName
-	}
-	if user.IsEmailVerified != nil {
-		storedUser.IsEmailVerified = user.IsEmailVerified
-	}
-
-	exists, err := IsUserExists(userStore, storedUser)
+	// It will override the `storedUser` with values filled in `user` and preserve the other values of `storedUser`
+	err = mergo.Merge(storedUser, user, mergo.WithOverride)
 	if err != nil {
 		return nil, err
-	} else if exists == false {
-		return nil, errors.ErrInvalidUser
+	}
+
+	// This is just for github auth. Will implement a switch  case here once we have a self signup
+	if storedUser.OnBoardingState == models.BoardingStateEmailVerified && storedUser.Kind == models.GithubAuth {
+		storedUser.OnBoardingState = models.BoardingStateVerifiedAndComplete
 	}
 
 	err = userStore.UpdateUser(storedUser)
