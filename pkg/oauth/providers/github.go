@@ -22,25 +22,34 @@ func getUserFromToken(c *gin.Context, token *oauth2.Token) (*models.UserCredenti
 
 	githubUser, _, err := client.Users.Get(ctx, "")
 	if err != nil {
-		log.Infof("\nerror: %v\n", err)
+		return nil, err
+	}
+
+	githubUserEmails, _, err := client.Users.ListEmails(ctx, &github.ListOptions{})
+	if err != nil {
+		return nil, err
 	}
 
 	currTime := time.Now()
-
 	user := models.UserCredentials{
-		Name:            githubUser.Name,
-		Email:           githubUser.Email,
-		IsEmailVerified: &types.FalseValue,
-		Kind:            models.GithubAuth,
-		Role:            models.RoleUser,
-		State:           models.StateActive,
-		SocialAuthID:    githubUser.ID,
-		LoggedIn:        &types.TrueValue,
-		CreatedAt:       &currTime,
+		Name:         githubUser.Name,
+		Kind:         models.GithubAuth,
+		Role:         models.RoleUser,
+		State:        models.StateActive,
+		SocialAuthID: githubUser.ID,
+		LoggedIn:     &types.TrueValue,
+		CreatedAt:    &currTime,
 	}
-	if githubUser.Email != nil {
-		user.IsEmailVerified = &types.TrueValue
+
+	for _, githubUserEmail := range githubUserEmails {
+		if *githubUserEmail.Primary == true {
+			user.Email = githubUserEmail.Email
+			user.IsEmailVerified = &types.TrueValue
+			user.OnBoardingState = models.BoardingStateEmailVerified
+			break
+		}
 	}
+
 	return &user, err
 }
 

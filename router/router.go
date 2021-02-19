@@ -79,7 +79,7 @@ func CallbackRequest(c *gin.Context) {
 
 	var user *models.UserCredentials
 	var err error
-	u := types.PortalURL + "/login?"
+	urlString := types.PortalURL + "/login?"
 	state := c.Query("state")
 
 	switch state {
@@ -91,7 +91,7 @@ func CallbackRequest(c *gin.Context) {
 				c.JSON(http.StatusInternalServerError, gin.H{
 					"error": err.Error(),
 				})
-				c.Redirect(http.StatusFound, u)
+				c.Redirect(http.StatusFound, urlString)
 				return
 			}
 		}
@@ -100,12 +100,12 @@ func CallbackRequest(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": "state Invalid",
 			})
-			c.Redirect(http.StatusFound, u)
+			c.Redirect(http.StatusFound, urlString)
 			return
 		}
 	}
 
-	v1.Server.SocialLoginRequest(c, user, u)
+	v1.Server.SocialLoginRequest(c, user, urlString)
 }
 
 //Middleware ...
