@@ -48,6 +48,12 @@ jobs:
           name: Run Checks
           command: make deps checks
       - run:
+          name: Run Tests
+          command: go test ./... -cover -coverprofile=coverage.txt -covermode=automatic
+      - run:
+          name: Upload coverage result to codecov
+          command: bash <(curl -s https://codecov.io/bash)
+      - run:
           name: Build Image
           command: make build IMGTAG=${IMGTAG}
       - run:

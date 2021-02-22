@@ -56,6 +56,11 @@ build:
 	@echo "------------------"
 	docker build . -f ./Dockerfile -t $(REPONAME)/$(IMGNAME):$(IMGTAG)
 
+test:
+	@echo "------------------"
+	@echo "--> Running tests"
+	go test ./...
+
 .PHONE: push
 
 push:
