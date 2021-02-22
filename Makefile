@@ -1,4 +1,4 @@
- 
+
 # Makefile for building Kubera Auth Server
 # Reference Guide - https://www.gnu.org/software/make/manual/make.html
 
@@ -60,6 +60,18 @@ test:
 	@echo "------------------"
 	@echo "--> Running tests"
 	go test ./...
+
+coverage:
+	@echo "Avoid running this one in your dev setup"
+	@echo "------------------"
+	@echo "--> Running tests with coverage"
+	# TODO: Fix the code or set the envs via a for loop to help write tests
+	# @for i in "JWT_SECRET" "ADMIN_USERNAME" "ADMIN_PASSWORD" "CONFIGMAP_NAME" "DB_SERVER" "PORTAL_URL";    do  let $i="dummy" ; done
+	@ADMIN_USERNAME="a" ADMIN_PASSWORD="b" CONFIGMAP_NAME="c" DB_SERVER="d" PORTAL_URL="e" go test ./... -cover -coverprofile=coverage.txt -covermode=atomic
+	# Cleanup ENVs like a good citizen
+	@ADMIN_USERNAME="" ADMIN_PASSWORD="" CONFIGMAP_NAME="" DB_SERVER="" PORTAL_URL=""
+
+
 
 .PHONE: push
 

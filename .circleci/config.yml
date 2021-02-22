@@ -49,7 +49,7 @@ jobs:
           command: make deps checks
       - run:
           name: Run Tests
-          command: go test ./... -cover -coverprofile=coverage.txt -covermode=automatic
+          command: make coverage
       - run:
           name: Upload coverage result to codecov
           command: bash <(curl -s https://codecov.io/bash)

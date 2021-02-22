@@ -1,3 +1,5 @@
 # Build Files
 output/
 .idea
+coverage.txt
+vendor/
