@@ -158,7 +158,7 @@ func (u *UserCredentials) GetEmail() string {
 	return *u.Email
 }
 
-// GetUnverifiedEmail gets the email that user needs to be verified
+// GetUnverifiedEmail gets the email that needs to be verified
 func (u *UserCredentials) GetUnverifiedEmail() string {
 	if u == nil || u.UnverifiedEmail == nil {
 		return ""
@@ -313,7 +313,7 @@ func (u *PublicUserInfo) GetEmail() string {
 	return *u.Email
 }
 
-// GetUnverifiedEmail gets the email that user want to be verified
+// GetUnverifiedEmail gets the email that needs to be verified
 func (u *PublicUserInfo) GetUnverifiedEmail() string {
 	if u == nil || u.UnverifiedEmail == nil {
 		return ""
