@@ -3,7 +3,6 @@ package router
 import (
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
 
 	"github.com/gin-gonic/gin"
@@ -11,9 +10,11 @@ import (
 
 func init() {
 	// TODO: Understand why this hack doesn't work
-	for _, key := range []string{"JWT_SECRET", "ADMIN_USERNAME", "ADMIN_PASSWORD", "CONFIGMAP_NAME", "DB_SERVER", "PORTAL_URL"} {
+
+	/*for _, key := range []string{"JWT_SECRET", "ADMIN_USERNAME", "ADMIN_PASSWORD", "CONFIGMAP_NAME", "DB_SERVER", "PORTAL_URL"} {
 		_ = os.Setenv(key, "dummy")
 	}
+	 */
 }
 
 func TestHealthCheck(t *testing.T) {

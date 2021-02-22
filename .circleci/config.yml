@@ -53,6 +53,8 @@ jobs:
       - run:
           name: Upload coverage result to codecov
           command: bash <(curl -s https://codecov.io/bash)
+          # Ref: https://circleci.com/docs/2.0/configuration-reference/#the-when-attribute
+          when: always
       - run:
           name: Build Image
           command: make build IMGTAG=${IMGTAG}

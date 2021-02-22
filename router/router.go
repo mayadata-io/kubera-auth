@@ -72,7 +72,7 @@ func New() *gin.Engine {
 
 // HealthCheck will respond with the server status
 func HealthCheck(c *gin.Context) {
-	c.Writer.WriteHeader(http.StatusForbidden)
+	c.Writer.WriteHeader(http.StatusOK)
 }
 
 //CallbackRequest will be triggered by the provider automatically after the login
