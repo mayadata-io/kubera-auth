@@ -24,7 +24,7 @@ type UserCredentials struct {
 	UserName        *string         `bson:"username,omitempty"`
 	Password        *string         `bson:"password,omitempty"`
 	Email           *string         `bson:"email,omitempty"`
-	IsEmailVerified *bool           `bson:"is_email_verified,omitempty"`
+	UnverifiedEmail *string         `bson:"unverified_email,omitempty"`
 	Company         *string         `bson:"company,omitempty"`
 	CompanyRole     *string         `bson:"company_role,omitempty"`
 	Name            *string         `bson:"name,omitempty"`
@@ -94,7 +94,7 @@ type PublicUserInfo struct {
 	UID             *string         `json:"uid"`
 	UserName        *string         `json:"username"`
 	Email           *string         `json:"email"`
-	IsEmailVerified *bool           `json:"is_email_verified,omitempty"`
+	UnverifiedEmail *string         `bson:"unverified_email,omitempty"`
 	Company         *string         `json:"company,omitempty"`
 	CompanyRole     *string         `json:"company_role,omitempty"`
 	Name            *string         `json:"name"`
@@ -158,12 +158,12 @@ func (u *UserCredentials) GetEmail() string {
 	return *u.Email
 }
 
-// GetIsEmailVerified user password
-func (u *UserCredentials) GetIsEmailVerified() bool {
-	if u == nil || u.IsEmailVerified == nil {
-		return false
+// GetUnverifiedEmail gets the email that user needs to be verified
+func (u *UserCredentials) GetUnverifiedEmail() string {
+	if u == nil || u.UnverifiedEmail == nil {
+		return ""
 	}
-	return *u.IsEmailVerified
+	return *u.UnverifiedEmail
 }
 
 // GetCompany gets user company name
@@ -268,7 +268,7 @@ func (u *UserCredentials) GetPublicInfo() *PublicUserInfo {
 		Name:            u.Name,
 		UserName:        u.UserName,
 		Email:           u.Email,
-		IsEmailVerified: u.IsEmailVerified,
+		UnverifiedEmail: u.UnverifiedEmail,
 		Company:         u.Company,
 		CompanyRole:     u.CompanyRole,
 		ID:              u.ID,
@@ -313,12 +313,12 @@ func (u *PublicUserInfo) GetEmail() string {
 	return *u.Email
 }
 
-// GetIsEmailVerified user password
-func (u *PublicUserInfo) GetIsEmailVerified() bool {
-	if u == nil || u.IsEmailVerified == nil {
-		return false
+// GetUnverifiedEmail gets the email that user want to be verified
+func (u *PublicUserInfo) GetUnverifiedEmail() string {
+	if u == nil || u.UnverifiedEmail == nil {
+		return ""
 	}
-	return *u.IsEmailVerified
+	return *u.UnverifiedEmail
 }
 
 // GetCompany gets user company name
@@ -424,7 +424,7 @@ func (u *PublicUserInfo) GetUserCredentials() *UserCredentials {
 		UID:             u.UID,
 		UserName:        u.UserName,
 		Email:           u.Email,
-		IsEmailVerified: u.IsEmailVerified,
+		UnverifiedEmail: u.UnverifiedEmail,
 		Company:         u.Company,
 		CompanyRole:     u.CompanyRole,
 		Name:            u.Name,

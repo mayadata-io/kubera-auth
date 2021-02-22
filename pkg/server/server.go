@@ -346,11 +346,6 @@ func (s *Server) SendVerificationLink(c *gin.Context, email string) {
 	}
 	jwtUserInfo := jwtUser.(*models.PublicUserInfo)
 
-	if jwtUserInfo.GetIsEmailVerified() {
-		s.redirectError(c, errors.New("Email is already verified"))
-		return
-	}
-
 	jwtUserInfo.Email = &email
 	updatedUserInfo, err := usermanager.UpdateUserDetails(s.userStore, jwtUserInfo.GetUserCredentials())
 	if err != nil {
@@ -403,7 +398,6 @@ func (s *Server) VerifyEmail(c *gin.Context) {
 		return
 	}
 	jwtUserInfo := jwtUser.(*models.PublicUserInfo)
-	jwtUserInfo.IsEmailVerified = &types.TrueValue
 
 	usermanager.UpdateUserDetails(s.userStore, jwtUserInfo.GetUserCredentials())
 
