@@ -36,7 +36,7 @@ type UserCredentials struct {
 	UpdatedAt       *time.Time      `bson:"updated_at,omitempty"`
 	RemovedAt       *time.Time      `bson:"removed_at,omitempty"`
 	State           State           `bson:"state,omitempty"`
-	OnBoardingState OnBoardingState `bson:"on_boarding_state,omitempty"`
+	OnBoardingState OnBoardingState `bson:"onboarding_state,omitempty"`
 }
 
 //AuthType determines the type of authentication opted by the user for login
@@ -94,7 +94,7 @@ type PublicUserInfo struct {
 	UID             *string         `json:"uid"`
 	UserName        *string         `json:"username"`
 	Email           *string         `json:"email"`
-	UnverifiedEmail *string         `bson:"unverified_email,omitempty"`
+	UnverifiedEmail *string         `json:"unverified_email,omitempty"`
 	Company         *string         `json:"company,omitempty"`
 	CompanyRole     *string         `json:"company_role,omitempty"`
 	Name            *string         `json:"name"`
@@ -106,7 +106,7 @@ type PublicUserInfo struct {
 	UpdatedAt       *time.Time      `json:"updated_at"`
 	RemovedAt       *time.Time      `json:"removed_at"`
 	State           State           `json:"state"`
-	OnBoardingState OnBoardingState `json:"on_boarding_state,omitempty"`
+	OnBoardingState OnBoardingState `json:"onboarding_state,omitempty"`
 }
 
 //State is the current state of the database entry of the user
