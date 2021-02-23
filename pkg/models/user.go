@@ -71,8 +71,8 @@ const (
 	BoardingStateInvalid               OnBoardingState = iota // Invalid State used as zero value
 	BoardingStateSignup                                       // Signup started (EmailNotVerified)
 	BoardingStateEmailVerified                                // EmailVerified
-	BoardingStateVerifiedAndComplete                          // VerifiedAndComplete
 	BoardingStateUnverifiedAndComplete                        // UnverifiedAndComplete
+	BoardingStateVerifiedAndComplete                          // VerifiedAndComplete
 )
 
 var adminUID = uuid.Must(uuid.NewRandom()).String()
