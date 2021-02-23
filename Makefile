@@ -72,6 +72,21 @@ coverage:
 	@ADMIN_USERNAME="" ADMIN_PASSWORD="" CONFIGMAP_NAME="" DB_SERVER="" PORTAL_URL=""
 
 
+.PHONY: golint
+golint:
+	# TODO: Ditch golint in favour of revive, see https://revive.run for more details
+	@echo "------------------"
+	@echo "--> Running GoLint"
+	$(eval PKGS := $(shell go list ./... | grep -v /vendor/))
+	@touch golint.tmp
+	-@for pkg in $(PKGS) ; do \
+		echo `golint $$pkg | grep -v "have comment" | grep -v "comment on exported" | grep -v "lint suggestions"` >> golint.tmp ; \
+	done
+	@grep -Ev "^$$" golint.tmp || true
+	@if [ "$$(grep -Ev "^$$" golint.tmp | wc -l)" -gt "0" ]; then \
+		rm -f golint.tmp; echo "golint failure\n"; exit 1; else \
+		rm -f golint.tmp; echo "golint success\n"; \
+	fi
 
 .PHONE: push
 

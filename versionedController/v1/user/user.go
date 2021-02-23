@@ -36,10 +36,9 @@ func (user *UserController) Put(c *gin.Context) {
 	}
 
 	controller.Server.UpdateUserDetailsRequest(c, userModel)
-	return
 }
 
-//Patch updates the password of concerned user ggiven that request should be sent by admin
+//Patch updates the password of concerned user given that request should be sent by admin
 func (user *UserController) Patch(c *gin.Context) {
 	userModel := &models.UserCredentials{}
 	err := c.BindJSON(userModel)
@@ -50,9 +49,7 @@ func (user *UserController) Patch(c *gin.Context) {
 		})
 		return
 	}
-
 	controller.Server.ResetPasswordRequest(c, userModel.GetPassword(), userModel.GetUserName())
-	return
 }
 
 //Post creates a user, request should be sent by admin
@@ -71,14 +68,12 @@ func (user *UserController) Post(c *gin.Context) {
 	userModel.Role = models.RoleUser
 	userModel.State = models.StateCreated
 	controller.Server.CreateRequest(c, userModel)
-	return
 }
 
 // Get will respond with a particular user or all users
 func (user *UserController) Get(c *gin.Context) {
 	// Get all users
 	controller.Server.GetUsersRequest(c)
-	return
 }
 
 // GetByUID will respond with a particular user or all users

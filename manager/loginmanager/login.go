@@ -36,7 +36,6 @@ func LocalLoginUser(userStore *store.UserStore, accessGenerate *generates.JWTAcc
 
 // SocialLoginUser get the user information
 func SocialLoginUser(userStore *store.UserStore, accessGenerate *generates.JWTAccessGenerate, user *models.UserCredentials) (*models.Token, error) {
-
 	query := bson.M{"social_auth_id": user.SocialAuthID}
 	storedUser, err := userStore.GetUser(query)
 	if err != nil && err == mgo.ErrNotFound {
@@ -61,13 +60,11 @@ func SocialLoginUser(userStore *store.UserStore, accessGenerate *generates.JWTAc
 	tgr := &jwtmanager.TokenGenerateRequest{
 		UserInfo: storedUser.GetPublicInfo(),
 	}
-
 	return jwtmanager.GenerateAuthToken(accessGenerate, tgr, models.TokenLogin)
 }
 
 // validationAuthenticateRequest the authenticate request validation
 func validationAuthenticateRequest(userStore *store.UserStore, username, password string) (*jwtmanager.TokenGenerateRequest, error) {
-
 	user, err := userStore.GetUser(bson.M{"username": username, "kind": models.LocalAuth})
 	if err != nil {
 		return nil, err

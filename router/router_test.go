@@ -14,7 +14,7 @@ func init() {
 	/*for _, key := range []string{"JWT_SECRET", "ADMIN_USERNAME", "ADMIN_PASSWORD", "CONFIGMAP_NAME", "DB_SERVER", "PORTAL_URL"} {
 		_ = os.Setenv(key, "dummy")
 	}
-	 */
+	*/
 }
 
 func TestHealthCheck(t *testing.T) {
@@ -24,7 +24,33 @@ func TestHealthCheck(t *testing.T) {
 	fakeReq := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(fakeReq)
 	HealthCheck(c)
-	if c.Writer.Status() != http.StatusOK{
+	if c.Writer.Status() != http.StatusOK {
 		t.Errorf("Expected: %v, Got: %v", http.StatusOK, c.Writer.Status())
 	}
 }
+
+/*
+func TestCallbackRequest(t *testing.T) {
+	type args struct {
+		state string
+	}
+	tests := []struct {
+		name string
+		args args
+	}{
+		{
+			name: "GitHub login",
+			args: args{
+				types.GithubState,
+			},
+		},
+	}
+	for _, tt := range tests {
+		os.Setenv("PORTAL_URL", "https://blog.google/")
+		// TODO: Fake the provider later
+		t.Run(tt.name, func(t *testing.T) {
+
+		})
+	}
+}
+*/

@@ -77,7 +77,6 @@ func HealthCheck(c *gin.Context) {
 
 //CallbackRequest will be triggered by the provider automatically after the login
 func CallbackRequest(c *gin.Context) {
-
 	var user *models.UserCredentials
 	var err error
 	urlString := types.PortalURL + "/login?"
@@ -111,7 +110,6 @@ func CallbackRequest(c *gin.Context) {
 
 //Middleware ...
 func Middleware(c *gin.Context) {
-
 	auth := c.Request.Header.Get(types.AuthHeaderKey)
 	prefix := types.AuthHeaderPrefix
 	token := ""

@@ -78,7 +78,7 @@ const (
 var adminUID = uuid.Must(uuid.NewRandom()).String()
 
 //DefaultUser is the admin user created by default
-var DefaultUser *UserCredentials = &UserCredentials{
+var DefaultUser = &UserCredentials{
 	UID:      &adminUID,
 	Name:     &types.DefaultName,
 	Email:    &types.DefaultEmail,

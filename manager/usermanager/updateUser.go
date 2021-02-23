@@ -13,7 +13,6 @@ import (
 
 // UpdateUserDetails get the user information
 func UpdateUserDetails(userStore *store.UserStore, user *models.UserCredentials) (*models.PublicUserInfo, error) {
-
 	storedUser, err := userStore.GetUserByID(user.GetID())
 	if err != nil {
 		return nil, errors.ErrInvalidUser
@@ -36,10 +35,9 @@ func UpdateUserDetails(userStore *store.UserStore, user *models.UserCredentials)
 
 // UpdatePassword get the user information
 func UpdatePassword(userStore *store.UserStore, reset bool, oldPassword, newPassword, userID string) (*models.PublicUserInfo, error) {
-
 	var storedUser *models.UserCredentials
 	var err error
-	if reset == true {
+	if reset {
 		storedUser, err = userStore.GetUser(bson.M{"username": userID, "kind": models.LocalAuth})
 		if err != nil {
 			return nil, err

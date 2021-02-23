@@ -53,7 +53,6 @@ func configureEmail() (*gomail.Dialer, *gomail.Message) {
 
 // GetEmailBody forms the html template body of email
 func GetEmailBody(userName, link string) (*bytes.Buffer, error) {
-
 	t, err := template.ParseFiles(types.TemplatePath + emailTemplatePath)
 	if err != nil {
 		return nil, err

@@ -13,11 +13,10 @@ import (
 
 // CreateUser get the user information
 func CreateUser(userStore *store.UserStore, user *models.UserCredentials) (*models.PublicUserInfo, error) {
-
 	exists, err := IsUserExists(userStore, user)
 	if err != nil {
 		return nil, err
-	} else if exists == true {
+	} else if exists {
 		return nil, errors.ErrUserExists
 	}
 
@@ -36,7 +35,6 @@ func CreateUser(userStore *store.UserStore, user *models.UserCredentials) (*mode
 
 //CreateSocialUser creates a user if the user opts logging in with some oauth
 func CreateSocialUser(userStore *store.UserStore, user *models.UserCredentials) error {
-
 	query := bson.M{"email": user.Email, "kind": models.LocalAuth}
 	storedUser, err := userStore.GetUser(query)
 	if err != nil && err == mgo.ErrNotFound {
@@ -49,6 +47,5 @@ func CreateSocialUser(userStore *store.UserStore, user *models.UserCredentials) 
 		user.UserName = storedUser.UserName
 		user.UID = storedUser.UID
 	}
-
 	return userStore.Set(user)
 }
