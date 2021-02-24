@@ -134,7 +134,6 @@ func (configurationController *Controller) Get(c *gin.Context) {
 	tokenString, err := getTokenFromHeader(c.Request)
 	if err != nil {
 		log.Errorln("Invalid Token: Unable to parse jwt")
-		return
 	}
 
 	userInfo, err := controller.Server.GetUserFromToken(tokenString)

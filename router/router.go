@@ -37,6 +37,7 @@ var (
 		"/v1" + v1.EmailRoute:         {http.MethodGet},
 		"/v1" + "/oauth":              {http.MethodGet},
 		"/v1" + v1.ConfigurationRoute: {http.MethodGet},
+		"/v1" + healthCheckRoute:      {http.MethodGet},
 	}
 )
 
