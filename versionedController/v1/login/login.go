@@ -16,7 +16,6 @@ import (
 type LoginController struct {
 	controller.GenericController
 	routePath string
-	model     *Model
 }
 
 // Model defines the json struct in which the request will be parsed
@@ -29,7 +28,6 @@ type Model struct {
 func New() *LoginController {
 	return &LoginController{
 		routePath: controller.TokenRoute,
-		model:     &Model{},
 	}
 }
 
@@ -41,7 +39,8 @@ func init() {
 
 // Post lets a user login into the kubera-core
 func (login *LoginController) Post(c *gin.Context) {
-	err := c.BindJSON(login.model)
+	loginModel := &Model{}
+	err := c.BindJSON(loginModel)
 	if err != nil {
 		log.Error(err)
 		c.JSON(http.StatusNotAcceptable, gin.H{
@@ -50,7 +49,7 @@ func (login *LoginController) Post(c *gin.Context) {
 		return
 	}
 
-	controller.Server.LocalLoginRequest(c, login.model.Username, login.model.Password)
+	controller.Server.LocalLoginRequest(c, loginModel.Username, loginModel.Password)
 	return
 }
 

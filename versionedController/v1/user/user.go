@@ -14,20 +14,19 @@ import (
 type UserController struct {
 	controller.GenericController
 	routePath string
-	model     *models.UserCredentials
 }
 
 // New creates a new User
 func New() *UserController {
 	return &UserController{
 		routePath: controller.UserRoute,
-		model:     &models.UserCredentials{},
 	}
 }
 
 // Put updates a user details
 func (user *UserController) Put(c *gin.Context) {
-	err := c.BindJSON(user.model)
+	userModel := &models.UserCredentials{}
+	err := c.BindJSON(userModel)
 	if err != nil {
 		log.Error(err)
 		c.JSON(http.StatusNotAcceptable, gin.H{
@@ -36,14 +35,14 @@ func (user *UserController) Put(c *gin.Context) {
 		return
 	}
 
-	userModel := models.UserCredentials(*user.model)
-	controller.Server.UpdateUserDetailsRequest(c, &userModel)
+	controller.Server.UpdateUserDetailsRequest(c, userModel)
 	return
 }
 
 //Patch updates the password of concerned user ggiven that request should be sent by admin
 func (user *UserController) Patch(c *gin.Context) {
-	err := c.BindJSON(user.model)
+	userModel := &models.UserCredentials{}
+	err := c.BindJSON(userModel)
 	if err != nil {
 		log.Error(err)
 		c.JSON(http.StatusNotAcceptable, gin.H{
@@ -52,13 +51,14 @@ func (user *UserController) Patch(c *gin.Context) {
 		return
 	}
 
-	controller.Server.ResetPasswordRequest(c, user.model.GetPassword(), user.model.GetUserName())
+	controller.Server.ResetPasswordRequest(c, userModel.GetPassword(), userModel.GetUserName())
 	return
 }
 
 //Post creates a user, request should be sent by admin
 func (user *UserController) Post(c *gin.Context) {
-	err := c.BindJSON(user.model)
+	userModel := &models.UserCredentials{}
+	err := c.BindJSON(userModel)
 	if err != nil {
 		log.Error(err)
 		c.JSON(http.StatusNotAcceptable, gin.H{
@@ -67,11 +67,10 @@ func (user *UserController) Post(c *gin.Context) {
 		return
 	}
 
-	userModel := models.UserCredentials(*user.model)
 	userModel.Kind = models.LocalAuth
 	userModel.Role = models.RoleUser
 	userModel.State = models.StateCreated
-	controller.Server.CreateRequest(c, &userModel)
+	controller.Server.CreateRequest(c, userModel)
 	return
 }
 
