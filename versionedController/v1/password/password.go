@@ -12,7 +12,6 @@ import (
 type PasswordController struct {
 	controller.GenericController
 	routePath string
-	model     *Model
 }
 
 //Model ...
@@ -25,13 +24,13 @@ type Model struct {
 func New() *PasswordController {
 	return &PasswordController{
 		routePath: controller.PasswordRoute,
-		model:     &Model{},
 	}
 }
 
 //Put updates the password of the concerned user
 func (password *PasswordController) Put(c *gin.Context) {
-	err := c.BindJSON(password.model)
+	passwordModel := &Model{}
+	err := c.BindJSON(passwordModel)
 	if err != nil {
 		log.Error(err)
 		c.JSON(http.StatusNotAcceptable, gin.H{
@@ -40,7 +39,7 @@ func (password *PasswordController) Put(c *gin.Context) {
 		return
 	}
 
-	controller.Server.UpdatePasswordRequest(c, password.model.OldPassword, password.model.NewPassword)
+	controller.Server.UpdatePasswordRequest(c, passwordModel.OldPassword, passwordModel.NewPassword)
 	return
 }
 

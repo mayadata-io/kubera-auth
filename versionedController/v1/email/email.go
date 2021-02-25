@@ -12,7 +12,6 @@ import (
 type EmailController struct {
 	controller.GenericController
 	routePath string
-	model     *Model
 }
 
 //Model ...
@@ -24,13 +23,13 @@ type Model struct {
 func New() *EmailController {
 	return &EmailController{
 		routePath: controller.EmailRoute,
-		model:     &Model{},
 	}
 }
 
 //Post send the verification link to an email address
 func (emailController *EmailController) Post(c *gin.Context) {
-	err := c.BindJSON(emailController.model)
+	emailModel := &Model{}
+	err := c.BindJSON(emailModel)
 	if err != nil {
 		log.Error(err)
 		c.JSON(http.StatusNotAcceptable, gin.H{
@@ -39,7 +38,7 @@ func (emailController *EmailController) Post(c *gin.Context) {
 		return
 	}
 
-	controller.Server.SendVerificationLink(c, emailController.model.Email)
+	controller.Server.SendVerificationLink(c, emailModel.Email)
 }
 
 //Get verifies the email by a link
