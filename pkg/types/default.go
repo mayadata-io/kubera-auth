@@ -17,7 +17,7 @@ const (
 	DefaultAuthDB                      string        = "auth"
 	DefaultLocalAuthCollection         string        = "usercredentials"
 	GithubState                        string        = "github"
-	UserInfoKey                        string        = "userInfo"
+	JWTUserCredentialsKey              string        = "userCredentials"
 	TemplatePath                       string        = "./templates"
 	AuthHeaderKey                      string        = "Authorization"
 	AuthHeaderPrefix                   string        = "Bearer "

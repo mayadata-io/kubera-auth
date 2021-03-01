@@ -140,19 +140,19 @@ func (a *JWTAccessGenerate) isHs() bool {
 }
 
 // Parse parses a UserName from a token
-func (a *JWTAccessGenerate) Parse(tokenString string) (*models.PublicUserInfo, error) {
+func (a *JWTAccessGenerate) Parse(tokenString string) (*models.UserCredentials, error) {
 	token, err := a.parseToken(tokenString)
 	if err != nil {
 		return nil, err
 	}
 
-	var userInfo *models.PublicUserInfo = new(models.PublicUserInfo)
+	var user *models.UserCredentials = new(models.UserCredentials)
 
 	if claims, ok := token.Claims.(*JWTAccessClaims); ok && token.Valid {
-		userInfo.Role = claims.Role
-		userInfo.UID = &claims.UID
-		userInfo.ID = claims.ID
-		return userInfo, nil
+		user.Role = claims.Role
+		user.UID = &claims.UID
+		user.ID = claims.ID
+		return user, nil
 	}
 	return nil, errors.ErrInvalidAccessToken
 }

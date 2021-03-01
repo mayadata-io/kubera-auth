@@ -27,16 +27,16 @@ var (
 )
 
 // ParseToken validates the token
-func ParseToken(userStore *store.UserStore, accessGenerate *generates.JWTAccessGenerate, tokenString string) (userInfo *models.PublicUserInfo, err error) {
-	userInfo, err = accessGenerate.Parse(tokenString)
+func ParseToken(userStore *store.UserStore, accessGenerate *generates.JWTAccessGenerate, tokenString string) (*models.UserCredentials, error) {
+	claimedUser, err := accessGenerate.Parse(tokenString)
 	if err != nil {
 		return nil, err
 	}
-	user, err := usermanager.GetUserByUID(userStore, userInfo.GetUID())
+	user, err := usermanager.GetUserByUID(userStore, claimedUser.GetUID())
 	if err != nil {
 		return nil, err
 	}
-	return user.GetPublicInfo(), nil
+	return user, nil
 }
 
 // GenerateAuthToken generate the authorization token(code)
