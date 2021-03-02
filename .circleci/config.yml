@@ -42,14 +42,14 @@ jobs:
           source $BASH_ENV
       - run:
           name: Setup GO
-          command: cd && wget https://dl.google.com/go/go1.14.6.linux-amd64.tar.gz && sudo tar -xvf go1.14.6.linux-amd64.tar.gz && sudo rm -rf /usr/local/go && sudo mv go /usr/local && export GOROOT=/usr/local/go && export BUILD_TYPE=ci && export GOPATH="$HOME/go" && export PATH="$PATH:$GOPATH/bin" && mkdir -p "$HOME/go/bin"
+          command: cd && wget https://dl.google.com/go/go1.14.6.linux-amd64.tar.gz && sudo tar -xvf go1.14.6.linux-amd64.tar.gz && sudo rm -rf /usr/local/go && sudo mv go /usr/local && export GOROOT=/usr/local/go && export BUILD_TYPE=ci
       - checkout
       - run:
           name: Run Checks
           command: make deps checks
       - run:
           name: Run GolangCI Lint
-          command: make golangci
+          command: curl -sSfL https://github.com/golangci/golangci-lint/releases/download/v1.37.1/golangci-lint-1.37.1-linux-amd64.tar.gz | tar zxf - && mv golangci-lint-1.37.1-linux-amd64/golangci-lint . && rm -rf golangci-lint-1.37.1-linux-amd64 && make golangci
       - run:
           name: Run Tests
           command: make coverage

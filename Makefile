@@ -82,11 +82,7 @@ golint:
 
 
 golangci:
-ifndef GOLANGCI_LINT
-		curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.37.1
-		echo "Installed golangci-lint"
-		golangci-lint --version
-endif
+	# curl -sSfL https://github.com/golangci/golangci-lint/releases/download/v1.37.1/golangci-lint-1.37.1-linux-amd64.tar.gz | tar zxf -
 	golangci-lint run
 
 push:
