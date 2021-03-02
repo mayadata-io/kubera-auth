@@ -19,7 +19,7 @@ func init() {
 
 //UserCredentials contains the user information
 type UserCredentials struct {
-	ID              bson.ObjectId   `bson:"_id,omitempty",json:`
+	ID              bson.ObjectId   `bson:"_id,omitempty"`
 	UID             *string         `bson:"uid,omitempty"`
 	UserName        *string         `bson:"username,omitempty"`
 	Password        *string         `bson:"password,omitempty"`
