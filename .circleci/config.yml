@@ -42,7 +42,7 @@ jobs:
           source $BASH_ENV
       - run:
           name: Setup GO
-          command: cd && wget https://dl.google.com/go/go1.14.6.linux-amd64.tar.gz && sudo tar -xvf go1.14.6.linux-amd64.tar.gz && sudo rm -rf /usr/local/go && sudo mv go /usr/local && export GOROOT=/usr/local/go && export BUILD_TYPE=ci
+          command: cd && wget https://dl.google.com/go/go1.14.6.linux-amd64.tar.gz && sudo tar -xvf go1.14.6.linux-amd64.tar.gz && sudo rm -rf /usr/local/go && sudo mv go /usr/local && export GOROOT=/usr/local/go && export BUILD_TYPE=ci && export GOPATH="$HOME/go" && export PATH="$PATH:$GOPATH/bin" && mkdir -p "$HOME/go/bin"
       - checkout
       - run:
           name: Run Checks
