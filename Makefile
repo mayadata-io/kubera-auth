@@ -1,4 +1,3 @@
-
 # Makefile for building Kubera Auth Server
 # Reference Guide - https://www.gnu.org/software/make/manual/make.html
 
@@ -7,7 +6,6 @@
 # NOTE - These will be executed when any make target is invoked.
 #
 IS_DOCKER_INSTALLED = $(shell which docker >> /dev/null 2>&1; echo $$?)
-GOLANGCI_LINT := $(shell command -v golangci-lint --version 2> /dev/null)
 #docker info
 REPONAME ?= mayadataio
 IMGNAME ?= kubera-auth
@@ -63,24 +61,6 @@ coverage:
 	# Cleanup ENVs like a good citizen
 	@ADMIN_USERNAME="" ADMIN_PASSWORD="" CONFIGMAP_NAME="" DB_SERVER="" PORTAL_URL=""
 
-
-golint:
-	# TODO: Ditch golint in favour of revive, see https://revive.run for more details
-	# This is a nice target to run on dev machine before raising a PR
-	@echo "------------------"
-	@echo "--> Running GoLint"
-	$(eval PKGS := $(shell go list ./... | grep -v /vendor/))
-	@touch golint.tmp
-	-@for pkg in $(PKGS) ; do \
-		echo `golint $$pkg | grep -v "have comment" | grep -v "comment on exported" | grep -v "lint suggestions"` >> golint.tmp ; \
-	done
-	@grep -Ev "^$$" golint.tmp || true
-	@if [ "$$(grep -Ev "^$$" golint.tmp | wc -l)" -gt "0" ]; then \
-		rm -f golint.tmp; echo "golint failure\n"; exit 1; else \
-		rm -f golint.tmp; echo "golint success\n"; \
-	fi
-
-
 golangci:
 	# curl -sSfL https://github.com/golangci/golangci-lint/releases/download/v1.37.1/golangci-lint-1.37.1-linux-amd64.tar.gz | tar zxf -
 	golangci-lint run
@@ -91,4 +71,4 @@ push:
 	@echo "------------------"
 	REPONAME=$(REPONAME) IMGNAME=$(IMGNAME) IMGTAG=$(IMGTAG) BUILD_TYPE=$(BUILD_TYPE) bash ./hack/push
 
-.PHONY: push golangci golint build test coverage all help deps checks
+.PHONY: push golangci build test coverage all help deps checks
