@@ -48,6 +48,9 @@ jobs:
           name: Run Checks
           command: make deps checks
       - run:
+          name: Run GolangCI Lint
+          command: make golangci
+      - run:
           name: Run Tests
           command: make coverage
       - run:

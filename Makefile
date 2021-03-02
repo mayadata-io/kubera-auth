@@ -7,22 +7,18 @@
 # NOTE - These will be executed when any make target is invoked.
 #
 IS_DOCKER_INSTALLED = $(shell which docker >> /dev/null 2>&1; echo $$?)
-
+GOLANGCI_LINT := $(shell command -v golangci-lint --version 2> /dev/null)
 #docker info
 REPONAME ?= mayadataio
 IMGNAME ?= kubera-auth
 
-.PHONY: all
 all: deps checks build push
 
-.PHONY: help
 help:
 	@echo ""
 	@echo "Usage:-"
 	@echo "\tmake all   -- [default] runs all checks and builds the kubera auth server image"
 	@echo ""
-
-.PHONY: deps
 
 deps:
 	@echo "------------------"
@@ -35,8 +31,6 @@ deps:
 		&& exit 1; \
 		fi;
 
-.PHONY: checks
-
 checks:
 	@echo "------------------"
 	@echo "--> Check Module Deps [go mod tidy]"
@@ -47,8 +41,6 @@ checks:
 		&& echo "Please ensure you are using $$($(GO) version) for formatting code." \
 		&& exit 1; \
 	fi
-
-.PHONY: build
 
 build:
 	@echo "------------------"
@@ -72,9 +64,9 @@ coverage:
 	@ADMIN_USERNAME="" ADMIN_PASSWORD="" CONFIGMAP_NAME="" DB_SERVER="" PORTAL_URL=""
 
 
-.PHONY: golint
 golint:
 	# TODO: Ditch golint in favour of revive, see https://revive.run for more details
+	# This is a nice target to run on dev machine before raising a PR
 	@echo "------------------"
 	@echo "--> Running GoLint"
 	$(eval PKGS := $(shell go list ./... | grep -v /vendor/))
@@ -88,10 +80,19 @@ golint:
 		rm -f golint.tmp; echo "golint success\n"; \
 	fi
 
-.PHONE: push
+
+golangci:
+ifndef GOLANGCI_LINT
+		curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.37.1
+		echo "Installed golangci-lint"
+		golangci-lint --version
+endif
+	golangci-lint run
 
 push:
 	@echo "------------------"
 	@echo "--> Push Kubera Auth Server images"
 	@echo "------------------"
 	REPONAME=$(REPONAME) IMGNAME=$(IMGNAME) IMGTAG=$(IMGTAG) BUILD_TYPE=$(BUILD_TYPE) bash ./hack/push
+
+.PHONY: push golangci golint build test coverage all help deps checks
