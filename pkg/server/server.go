@@ -9,6 +9,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	log "github.com/golang/glog"
+	"github.com/imdario/mergo"
 
 	"github.com/mayadata-io/kubera-auth/manager/jwtmanager"
 	"github.com/mayadata-io/kubera-auth/manager/loginmanager"
@@ -252,8 +253,13 @@ func (s *Server) UpdateUserDetailsRequest(c *gin.Context, user *models.UserCrede
 	}
 	jwtUserCredentials := jwtUser.(*models.UserCredentials)
 
-	user.ID = jwtUserCredentials.GetID()
-	updatedUserInfo, err := usermanager.UpdateUserDetails(s.userStore, user)
+	// It will override the `jwtUserCredentials` with values filled in `user` and preserve the other values of `storedUser`
+	err := mergo.Merge(jwtUserCredentials, user, mergo.WithOverride)
+	if err != nil {
+		s.redirectError(c, err)
+	}
+
+	updatedUserInfo, err := usermanager.UpdateUserDetails(s.userStore, jwtUserCredentials)
 	if err != nil {
 		s.redirectError(c, err)
 		return
@@ -380,10 +386,13 @@ func (s *Server) VerifyEmail(c *gin.Context) {
 	}
 	jwtUserCredentials := jwtUser.(*models.UserCredentials)
 
-	_, _ = usermanager.UpdateUserDetails(s.userStore, jwtUserCredentials)
+	updatedUserInfo, err := usermanager.UpdateUserDetails(s.userStore, jwtUserCredentials)
+	if err != nil {
+		s.redirect(c, err)
+	}
 
 	tgr := &jwtmanager.TokenGenerateRequest{
-		UserInfo:       jwtUserCredentials.GetPublicInfo(),
+		UserInfo:       updatedUserInfo,
 		AccessTokenExp: time.Minute * 10,
 	}
 
