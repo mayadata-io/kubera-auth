@@ -13,7 +13,6 @@ import (
 
 // IsUserExists get the user information
 func IsUserExists(userStore *store.UserStore, user *models.UserCredentials) (bool, error) {
-
 	exists := true
 	_, err := userStore.GetUser(bson.M{"username": user.GetUserName()})
 	if err != nil && err == mgo.ErrNotFound {
@@ -22,7 +21,7 @@ func IsUserExists(userStore *store.UserStore, user *models.UserCredentials) (boo
 		return false, err
 	}
 
-	if exists == false && user.Email != nil {
+	if !exists && user.Email != nil {
 		_, err := userStore.GetUser(bson.M{"email": *user.Email})
 		if err != nil && err == mgo.ErrNotFound {
 			exists = false

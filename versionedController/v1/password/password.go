@@ -38,9 +38,7 @@ func (password *PasswordController) Put(c *gin.Context) {
 		})
 		return
 	}
-
 	controller.Server.UpdatePasswordRequest(c, passwordModel.OldPassword, passwordModel.NewPassword)
-	return
 }
 
 // Register will rsgister this controller to the specified router

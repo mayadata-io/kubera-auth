@@ -41,7 +41,6 @@ func init() {
 
 // NewJWTAccessGenerate create to generate the jwt access token instance
 func NewJWTAccessGenerate(method jwt.SigningMethod) *JWTAccessGenerate {
-
 	key, err := initializeSecret()
 	if err != nil {
 		log.Fatal(err)
@@ -66,9 +65,8 @@ type JWTAccessGenerate struct {
 }
 
 func initializeSecret() (string, error) {
-
 	if k8s.ClientSet == nil {
-		return "", errors.New("ClienSet not found")
+		return "", errors.New("ClientSet not found")
 	}
 
 	cm, err := k8s.ClientSet.CoreV1().ConfigMaps(types.DefaultNamespace).Get(context.TODO(), types.DefaultConfigMap, metav1.GetOptions{})
@@ -143,7 +141,6 @@ func (a *JWTAccessGenerate) isHs() bool {
 
 // Parse parses a UserName from a token
 func (a *JWTAccessGenerate) Parse(tokenString string) (*models.PublicUserInfo, error) {
-
 	token, err := a.parseToken(tokenString)
 	if err != nil {
 		return nil, err
@@ -166,7 +163,6 @@ func (a *JWTAccessGenerate) parseToken(tokenString string) (*jwt.Token, error) {
 		if ok := token.Method.Alg() == a.SignedMethod.Alg(); !ok {
 			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
 		}
-
-		return []byte(a.SignedKey), nil
+		return a.SignedKey, nil
 	})
 }

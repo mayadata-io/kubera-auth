@@ -17,7 +17,6 @@ type Config struct {
 
 // NewConfig create to configuration instance
 func NewConfig() *Config {
-
 	config := &Config{
 		TokenType: types.BEARER,
 	}
@@ -47,5 +46,4 @@ func NewConfig() *Config {
 		}
 	}
 	return config
-
 }

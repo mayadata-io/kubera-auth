@@ -72,6 +72,7 @@ func (us *UserStore) Close() {
 	us.session.Close()
 }
 
+// nolint: unused
 func (us *UserStore) c(name string) *mgo.Collection {
 	return us.session.DB(us.dbName).C(name)
 }
@@ -80,7 +81,6 @@ func (us *UserStore) cHandler(name string, handler func(c *mgo.Collection)) {
 	session := us.session.Clone()
 	defer session.Close()
 	handler(session.DB(us.dbName).C(name))
-	return
 }
 
 // Set set user information
@@ -94,7 +94,6 @@ func (us *UserStore) Set(user *models.UserCredentials) (err error) {
 			return
 		}
 	})
-
 	return
 }
 

@@ -48,22 +48,19 @@ func (login *LoginController) Post(c *gin.Context) {
 		})
 		return
 	}
-
 	controller.Server.LocalLoginRequest(c, loginModel.Username, loginModel.Password)
-	return
 }
 
-/* Get will be triggered on GET request on the same path as Login alogn with a "auth_type" parameter
-** so as to identify the type of login user is up to. This has to be triggered through a href request
-** so that the user is able to be redirected to provider page for login.
-** Javascript Get Request can block the redirection of user */
+// Get will be triggered on GET request on the same path as Login alogn with a "auth_type" parameter
+// so as to identify the type of login user is up to. This has to be triggered through a href request
+// so that the user is able to be redirected to provider page for login.
+// Javascript Get Request can block the redirection of user
 func (login *LoginController) Get(c *gin.Context) {
-
 	authType := c.Query("auth_type")
 	switch models.AuthType(authType) {
 	case models.GithubAuth:
 		{
-			if controller.Server.Config.DisableGithubAuth == false {
+			if !controller.Server.Config.DisableGithubAuth {
 				githubURL := controller.Server.GithubConfig.AuthCodeURL(types.GithubState)
 				c.Redirect(http.StatusFound, githubURL)
 			} else {
@@ -84,7 +81,6 @@ func (login *LoginController) Get(c *gin.Context) {
 // Delete lets a user logout of the kubera-core
 func (login *LoginController) Delete(c *gin.Context) {
 	controller.Server.LogoutRequest(c)
-	return
 }
 
 // Register will rsgister this controller to the specified router

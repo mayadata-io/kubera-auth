@@ -1,0 +1,53 @@
+# all available settings of specific linters
+linters-settings:
+  govet:
+    settings:
+      printf: # analyzer name, run `go tool vet help` to see all analyzers
+        funcs: # run `go tool vet help printf` to see available settings for `printf` analyzer
+          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Infof
+          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Warnf
+          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Errorf
+          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Fatalf
+  gocyclo:
+    # minimal code complexity to report, 30 by default (but we recommend 10-20)
+    # More @ golangci/golangci-lint#368
+    min-complexity: 10
+  maligned:
+    suggest-new: true
+  dupl:
+    # Search clones in the current directory of size >100 tokens.
+    threshold: 100
+  goconst:
+    # Polices us to put repeated strings in constants
+    # the string should be >=2 char long and should occur 2+ times for the warning.
+    min-len: 2
+    min-occurrences: 2
+linters:
+    # enable or disable analyzers by name, refer: https://golangci-lint.run/usage/linters/
+    enable:
+      - gofmt # Need more stringent rules? Enable gofumpt
+      - errcheck
+      - ineffassign
+      - gosec
+      - whitespace
+      - misspell
+      - unconvert
+      - goimports
+      - unused
+      - gosimple
+      - varcheck
+      - structcheck
+      - cyclop # also calculates package complexity
+      #- godox # checks for TODOs,<F12> FIXME, etc, TODO: golangci-lint#708
+      - deadcode
+      - depguard
+      - govet
+      - typecheck
+      - staticcheck
+      - revive
+      - bodyclose
+      - dupl # tool for code clone detection based on tokens
+      #- sqlclosecheck # check if sql.Rows are closed
+service:
+  # Need to update the version downloaded in Makefile if this is changed
+  golangci-lint-version: 1.37.1 # use the fixed version to not introduce new linters unexpectedly

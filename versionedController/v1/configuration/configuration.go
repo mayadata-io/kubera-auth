@@ -35,9 +35,9 @@ func New() *Controller {
 	}
 }
 
-//Put updates the password of the concerned user
+// Put updates the password of the concerned user
+// nolint: cyclop
 func (configurationController *Controller) Put(c *gin.Context) {
-
 	configurationModel := &Model{}
 	tokenString, err := getTokenFromHeader(c.Request)
 	if err != nil {
@@ -90,7 +90,7 @@ func (configurationController *Controller) Put(c *gin.Context) {
 		}
 
 		secret.StringData = data
-		secret, err = k8s.ClientSet.CoreV1().Secrets(types.DefaultNamespace).Update(c.Request.Context(), secret, metav1.UpdateOptions{})
+		_, err = k8s.ClientSet.CoreV1().Secrets(types.DefaultNamespace).Update(c.Request.Context(), secret, metav1.UpdateOptions{})
 		if err != nil {
 			c.String(http.StatusInternalServerError, "Error storing credentials : %v", err)
 			log.Errorln("Error updating secret ", err)
@@ -99,7 +99,6 @@ func (configurationController *Controller) Put(c *gin.Context) {
 
 		controller.Server.GithubConfig.ClientID = *configurationModel.ClientID
 		controller.Server.GithubConfig.ClientSecret = *configurationModel.ClientSecret
-
 	}
 	if configurationModel.EnableGithub != nil {
 		cm, err := k8s.ClientSet.CoreV1().ConfigMaps(types.DefaultNamespace).Get(c.Request.Context(), types.DefaultConfigMap, metav1.GetOptions{})
@@ -110,7 +109,7 @@ func (configurationController *Controller) Put(c *gin.Context) {
 		}
 
 		cm.Data[types.DISABLE_GITHUBAUTH] = strconv.FormatBool(!*configurationModel.EnableGithub)
-		cm, err = k8s.ClientSet.CoreV1().ConfigMaps(types.DefaultNamespace).Update(c.Request.Context(), cm, metav1.UpdateOptions{})
+		_, err = k8s.ClientSet.CoreV1().ConfigMaps(types.DefaultNamespace).Update(c.Request.Context(), cm, metav1.UpdateOptions{})
 		if err != nil {
 			c.String(http.StatusInternalServerError, "Error enabling github login : %v", err)
 			log.Errorln("Error updating configmap ", err)
@@ -120,12 +119,11 @@ func (configurationController *Controller) Put(c *gin.Context) {
 		controller.Server.Config.DisableGithubAuth = !*configurationModel.EnableGithub
 	}
 
-	c.String(http.StatusOK, "Configured sucessfully")
+	c.String(http.StatusOK, "Configured successfully")
 }
 
 func (configurationController *Controller) Get(c *gin.Context) {
-
-	auth_data := map[string]interface{}{
+	authData := map[string]interface{}{
 		types.DISABLE_GITHUBAUTH: controller.Server.Config.DisableGithubAuth,
 		types.DISABLE_LOCALAUTH:  controller.Server.Config.DisableLocalAuth,
 	}
@@ -137,11 +135,11 @@ func (configurationController *Controller) Get(c *gin.Context) {
 
 	userInfo, err := controller.Server.GetUserFromToken(tokenString)
 	if err == nil && userInfo.GetRole() == models.RoleAdmin {
-		auth_data[types.GITHUB_CLIENT_ID] = controller.Server.GithubConfig.ClientID
-		auth_data[types.GITHUB_CLIENT_SECRET] = controller.Server.GithubConfig.ClientSecret
+		authData[types.GITHUB_CLIENT_ID] = controller.Server.GithubConfig.ClientID
+		authData[types.GITHUB_CLIENT_SECRET] = controller.Server.GithubConfig.ClientSecret
 	}
 
-	c.JSON(http.StatusOK, auth_data)
+	c.JSON(http.StatusOK, authData)
 }
 
 func getTokenFromHeader(r *http.Request) (string, error) {

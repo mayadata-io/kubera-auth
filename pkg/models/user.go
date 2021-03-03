@@ -19,7 +19,7 @@ func init() {
 
 //UserCredentials contains the user information
 type UserCredentials struct {
-	ID              bson.ObjectId   `bson:"_id,omitempty",json:`
+	ID              bson.ObjectId   `bson:"_id,omitempty"`
 	UID             *string         `bson:"uid,omitempty"`
 	UserName        *string         `bson:"username,omitempty"`
 	Password        *string         `bson:"password,omitempty"`
@@ -78,7 +78,7 @@ const (
 var adminUID = uuid.Must(uuid.NewRandom()).String()
 
 //DefaultUser is the admin user created by default
-var DefaultUser *UserCredentials = &UserCredentials{
+var DefaultUser = &UserCredentials{
 	UID:      &adminUID,
 	Name:     &types.DefaultName,
 	Email:    &types.DefaultEmail,

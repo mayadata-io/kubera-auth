@@ -4,10 +4,16 @@ import (
 	"time"
 )
 
-// define the type of authorization request
+// define the admin & login details(true, false, nil)
 var (
-	DefaultName                        string        = "ADMIN"
-	DefaultEmail                       string        = "admin@kubera.com"
+	DefaultName  = "ADMIN"
+	DefaultEmail = "admin@kubera.com"
+	TrueValue    = true
+	FalseValue   = false
+)
+
+// Authentication related constants
+const (
 	DefaultAuthDB                      string        = "auth"
 	DefaultLocalAuthCollection         string        = "usercredentials"
 	GithubState                        string        = "github"
@@ -16,8 +22,6 @@ var (
 	AuthHeaderKey                      string        = "Authorization"
 	AuthHeaderPrefix                   string        = "Bearer "
 	TimeFormat                         string        = time.RFC1123Z
-	TrueValue                          bool          = true
-	FalseValue                         bool          = false
 	VerificationLinkExpirationTimeUnit time.Duration = 10
 	PasswordEncryptionCost             int           = 15
 )

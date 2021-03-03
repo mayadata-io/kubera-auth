@@ -48,6 +48,17 @@ jobs:
           name: Run Checks
           command: make deps checks
       - run:
+          name: Run GolangCI Lint
+          command: curl -sSfL https://github.com/golangci/golangci-lint/releases/download/v1.37.1/golangci-lint-1.37.1-linux-amd64.tar.gz | tar zxf - && mv golangci-lint-1.37.1-linux-amd64/golangci-lint . && rm -rf golangci-lint-1.37.1-linux-amd64 && ./golangci-lint run --timeout 5m
+      - run:
+          name: Run Tests
+          command: make coverage
+      - run:
+          name: Upload coverage result to codecov
+          command: bash <(curl -s https://codecov.io/bash)
+          # Ref: https://circleci.com/docs/2.0/configuration-reference/#the-when-attribute
+          when: always
+      - run:
           name: Build Image
           command: make build IMGTAG=${IMGTAG}
       - run:

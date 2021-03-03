@@ -29,7 +29,6 @@ func init() {
 
 // NewServer create authorization server
 func NewServer(cfg *Config) *Server {
-
 	userStoreCfg := store.NewConfig(types.DefaultDBServerURL, types.DefaultAuthDB)
 	srv := &Server{
 		Config:         cfg,
@@ -72,7 +71,6 @@ func (s *Server) redirect(c *gin.Context, data interface{}) {
 
 // LocalLoginRequest the local authentication request handling
 func (s *Server) LocalLoginRequest(c *gin.Context, username, password string) {
-
 	if username == "" || password == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Username or password cannot be empty",
@@ -85,14 +83,11 @@ func (s *Server) LocalLoginRequest(c *gin.Context, username, password string) {
 		s.redirectError(c, err)
 		return
 	}
-
 	s.redirect(c, s.getTokenData(tokenInfo))
-	return
 }
 
 //SocialLoginRequest logs in the user with github or gmail
 func (s *Server) SocialLoginRequest(c *gin.Context, user *models.UserCredentials, urlString string) {
-
 	values := url.Values{}
 	tokenInfo, err := loginmanager.SocialLoginUser(s.userStore, s.accessGenerate, user)
 	if err != nil {
@@ -103,12 +98,10 @@ func (s *Server) SocialLoginRequest(c *gin.Context, user *models.UserCredentials
 
 	values.Set("access_token", tokenInfo.GetAccess())
 	c.Redirect(http.StatusFound, urlString+values.Encode())
-	return
 }
 
 // LogoutRequest the authorization request handling
 func (s *Server) LogoutRequest(c *gin.Context) {
-
 	jwtUser, exists := c.Get(types.UserInfoKey)
 	if !exists {
 		s.redirectError(c, errors.ErrInvalidAccessToken)
@@ -125,7 +118,6 @@ func (s *Server) LogoutRequest(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": "LoggedOut successfully",
 	})
-	return
 }
 
 // GetTokenData token data
@@ -139,6 +131,7 @@ func (s *Server) getTokenData(ti *models.Token) map[string]interface{} {
 }
 
 // GetErrorData get error response data
+// nolint: cyclop
 func (s *Server) getErrorData(err error) (map[string]interface{}, int, http.Header) {
 	var re errors.Response
 	if v, ok := errors.Descriptions[err]; ok {
@@ -204,7 +197,6 @@ func (s *Server) GetUserFromToken(token string) (*models.PublicUserInfo, error) 
 
 // UpdatePasswordRequest validates the request
 func (s *Server) UpdatePasswordRequest(c *gin.Context, oldPassword, newPassword string) {
-
 	jwtUser, exists := c.Get(types.UserInfoKey)
 	if !exists {
 		s.redirectError(c, errors.ErrInvalidAccessToken)
@@ -223,12 +215,10 @@ func (s *Server) UpdatePasswordRequest(c *gin.Context, oldPassword, newPassword 
 		return
 	}
 	s.redirect(c, updatedUserInfo)
-	return
 }
 
 // ResetPasswordRequest validates the request
 func (s *Server) ResetPasswordRequest(c *gin.Context, newPassword, userName string) {
-
 	jwtUser, exists := c.Get(types.UserInfoKey)
 	if !exists {
 		s.redirectError(c, errors.ErrInvalidAccessToken)
@@ -244,7 +234,6 @@ func (s *Server) ResetPasswordRequest(c *gin.Context, newPassword, userName stri
 	var updatedUserInfo *models.PublicUserInfo
 	var err error
 	if jwtUserInfo.GetRole() == models.RoleAdmin {
-
 		updatedUserInfo, err = usermanager.UpdatePassword(s.userStore, true, "", newPassword, userName)
 		if err != nil {
 			s.redirectError(c, err)
@@ -252,12 +241,10 @@ func (s *Server) ResetPasswordRequest(c *gin.Context, newPassword, userName stri
 		}
 	}
 	s.redirect(c, updatedUserInfo)
-	return
 }
 
 // UpdateUserDetailsRequest validates the request
 func (s *Server) UpdateUserDetailsRequest(c *gin.Context, user *models.UserCredentials) {
-
 	jwtUser, exists := c.Get(types.UserInfoKey)
 	if !exists {
 		s.redirectError(c, errors.ErrInvalidAccessToken)
@@ -272,12 +259,10 @@ func (s *Server) UpdateUserDetailsRequest(c *gin.Context, user *models.UserCrede
 		return
 	}
 	s.redirect(c, updatedUserInfo)
-	return
 }
 
 // CreateRequest validates the request
 func (s *Server) CreateRequest(c *gin.Context, user *models.UserCredentials) {
-
 	jwtUser, exists := c.Get(types.UserInfoKey)
 	if !exists {
 		s.redirectError(c, errors.ErrInvalidAccessToken)
@@ -302,7 +287,6 @@ func (s *Server) CreateRequest(c *gin.Context, user *models.UserCredentials) {
 		return
 	}
 	s.redirectError(c, errors.ErrInvalidUser)
-	return
 }
 
 // GetUsersRequest gets all the users
@@ -312,9 +296,7 @@ func (s *Server) GetUsersRequest(c *gin.Context) {
 		s.redirectError(c, err)
 		return
 	}
-
 	s.redirect(c, users)
-	return
 }
 
 //GetUserByUID gets a particular user
@@ -391,7 +373,6 @@ func (s *Server) SendVerificationLink(c *gin.Context, email string) {
 
 // VerifyEmail marks a user email as verified
 func (s *Server) VerifyEmail(c *gin.Context) {
-
 	jwtUser, exists := c.Get(types.UserInfoKey)
 	if !exists {
 		s.redirectError(c, errors.ErrInvalidAccessToken)
@@ -399,7 +380,7 @@ func (s *Server) VerifyEmail(c *gin.Context) {
 	}
 	jwtUserInfo := jwtUser.(*models.PublicUserInfo)
 
-	usermanager.UpdateUserDetails(s.userStore, jwtUserInfo.GetUserCredentials())
+	_, _ = usermanager.UpdateUserDetails(s.userStore, jwtUserInfo.GetUserCredentials())
 
 	tgr := &jwtmanager.TokenGenerateRequest{
 		UserInfo:       jwtUserInfo,

@@ -41,7 +41,6 @@ func ParseToken(userStore *store.UserStore, accessGenerate *generates.JWTAccessG
 
 // GenerateAuthToken generate the authorization token(code)
 func GenerateAuthToken(accessGenerate *generates.JWTAccessGenerate, tgr *TokenGenerateRequest, jwtType models.TokenType) (*models.Token, error) {
-
 	ti := models.NewToken(jwtType)
 
 	createAt := time.Now()

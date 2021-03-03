@@ -1,3 +1,5 @@
+// random helps generate random strings & numbers
+// nolint
 package random
 
 import "math/rand"

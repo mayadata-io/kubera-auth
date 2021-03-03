@@ -14,7 +14,6 @@ import (
 )
 
 func getUserFromToken(c *gin.Context, token *oauth2.Token) (*models.UserCredentials, error) {
-
 	ctx := c.Request.Context()
 	ts := oauth2.StaticTokenSource(token)
 	tc := oauth2.NewClient(ctx, ts)
@@ -42,7 +41,7 @@ func getUserFromToken(c *gin.Context, token *oauth2.Token) (*models.UserCredenti
 	}
 
 	for _, githubUserEmail := range githubUserEmails {
-		if *githubUserEmail.Primary == true {
+		if *githubUserEmail.Primary {
 			user.Email = githubUserEmail.Email
 			user.OnBoardingState = models.BoardingStateEmailVerified
 			break
