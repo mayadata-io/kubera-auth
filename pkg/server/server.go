@@ -36,6 +36,7 @@ func NewServer(cfg *Config) *Server {
 		Config:         cfg,
 		accessGenerate: generates.NewJWTAccessGenerate(jwt.SigningMethodHS512),
 		GithubConfig:   oauth.NewGithubConfig(),
+		GoogleConfig:   oauth.NewGoogleConfig(),
 	}
 	srv.MustUserStorage(store.NewUserStore(userStoreCfg, store.NewDefaultUserConfig()))
 
@@ -46,6 +47,7 @@ func NewServer(cfg *Config) *Server {
 type Server struct {
 	Config         *Config
 	GithubConfig   oauth.SocialAuthConfig
+	GoogleConfig   oauth.SocialAuthConfig
 	accessGenerate *generates.JWTAccessGenerate
 	userStore      *store.UserStore
 }

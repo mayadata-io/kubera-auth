@@ -5,54 +5,41 @@ import (
 
 	"github.com/gin-gonic/gin"
 	log "github.com/golang/glog"
-	"github.com/google/go-github/github"
-	"golang.org/x/oauth2"
-
 	"github.com/mayadata-io/kubera-auth/pkg/models"
+	"github.com/mayadata-io/kubera-auth/pkg/types"
 	controller "github.com/mayadata-io/kubera-auth/versionedController/v1"
+	"golang.org/x/oauth2"
 )
 
+// getUserFromToken gets the user model based on the structure
 func getUserFromToken(c *gin.Context, token *oauth2.Token) (*models.UserCredentials, error) {
 	ctx := c.Request.Context()
 	ts := oauth2.StaticTokenSource(token)
 	tc := oauth2.NewClient(ctx, ts)
-	client := github.NewClient(tc)
+	// client := google.DefaultClient()
 
-	githubUser, _, err := client.Users.Get(ctx, "")
-	if err != nil {
-		return nil, err
-	}
-
-	githubUserEmails, _, err := client.Users.ListEmails(ctx, &github.ListOptions{})
+	googleUser, _, err := client.Users.Get(ctx, "")
 	if err != nil {
 		return nil, err
 	}
 
 	currTime := time.Now()
 	user := models.UserCredentials{
-		Name:         githubUser.GetName(),
-		Kind:         models.GithubAuth,
+		Name:         googleUser.Name,
+		Kind:         models.GmailAuth,
 		Role:         models.RoleUser,
 		State:        models.StateActive,
-		SocialAuthID: githubUser.ID,
-		LoggedIn:     true,
+		SocialAuthID: googleUser.ID,
+		LoggedIn:     &types.TrueValue,
 		CreatedAt:    &currTime,
-	}
-
-	for _, githubUserEmail := range githubUserEmails {
-		if githubUserEmail.Primary != nil && githubUserEmail.Email != nil {
-			user.Email = githubUserEmail.GetEmail()
-			user.OnBoardingState = models.BoardingStateEmailVerified
-			break
-		}
 	}
 
 	return &user, err
 }
 
-//GetGithubUser gives the details of the user fetched as from github
-func GetGithubUser(c *gin.Context) (*models.UserCredentials, error) {
-	token, err := controller.Server.GithubConfig.GetToken(c)
+// GetGoogleUser gives the details of the user fetched as from github
+func GetGoogleUser(c *gin.Context) (*models.UserCredentials, error) {
+	token, err := controller.Server.GoogleConfig.GetToken(c)
 	if err != nil {
 		log.Errorln("Error getting token from github", err)
 		return nil, err

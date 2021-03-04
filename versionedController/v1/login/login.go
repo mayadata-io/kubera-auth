@@ -63,7 +63,10 @@ func (login *LoginController) Get(c *gin.Context) {
 			if !controller.Server.Config.DisableGithubAuth {
 				githubURL := controller.Server.GithubConfig.AuthCodeURL(types.GithubState)
 				c.Redirect(http.StatusFound, githubURL)
-			} else {
+			} else if !controller.Server.Config.DisableGoogleAuth {
+				googleURL := controller.Server.GoogleConfig.AuthCodeURL()
+			}
+			else {
 				c.JSON(http.StatusBadRequest, gin.H{
 					"error": "Authentication type not allowed",
 				})
