@@ -59,6 +59,9 @@ jobs:
           # Ref: https://circleci.com/docs/2.0/configuration-reference/#the-when-attribute
           when: always
       - run:
+          name: Skip image building for pull requests
+          command: if [[ -n "$CIRCLE_PULL_REQUEST" ]] ; then circleci-agent step halt; fi
+      - run:
           name: Build Image
           command: make build IMGTAG=${IMGTAG}
       - run:
