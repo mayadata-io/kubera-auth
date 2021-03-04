@@ -136,7 +136,7 @@ func Middleware(c *gin.Context) {
 		return
 	}
 
-	userInfo, err := v1.Server.GetUserFromToken(token)
+	jwtUserCredentials, err := v1.Server.GetUserFromToken(token)
 	if err != nil {
 		c.Abort()
 		c.JSON(http.StatusUnauthorized, gin.H{
@@ -144,5 +144,5 @@ func Middleware(c *gin.Context) {
 		})
 		return
 	}
-	c.Set(types.UserInfoKey, userInfo)
+	c.Set(types.JWTUserCredentialsKey, jwtUserCredentials)
 }

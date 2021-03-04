@@ -45,11 +45,11 @@ func (configurationController *Controller) Put(c *gin.Context) {
 		return
 	}
 
-	userInfo, err := controller.Server.GetUserFromToken(tokenString)
-	if err != nil || userInfo == nil {
+	jwtUserCredentials, err := controller.Server.GetUserFromToken(tokenString)
+	if err != nil || jwtUserCredentials == nil {
 		c.JSON(http.StatusUnauthorized, err.Error())
 		return
-	} else if userInfo.GetRole() != models.RoleAdmin {
+	} else if jwtUserCredentials.GetRole() != models.RoleAdmin {
 		c.JSON(http.StatusUnauthorized, err.Error())
 		return
 	}
@@ -133,8 +133,8 @@ func (configurationController *Controller) Get(c *gin.Context) {
 		log.Errorln("Invalid Token: Unable to parse jwt")
 	}
 
-	userInfo, err := controller.Server.GetUserFromToken(tokenString)
-	if err == nil && userInfo.GetRole() == models.RoleAdmin {
+	jwtUserCredentials, err := controller.Server.GetUserFromToken(tokenString)
+	if err == nil && jwtUserCredentials.GetRole() == models.RoleAdmin {
 		authData[types.GITHUB_CLIENT_ID] = controller.Server.GithubConfig.ClientID
 		authData[types.GITHUB_CLIENT_SECRET] = controller.Server.GithubConfig.ClientSecret
 	}

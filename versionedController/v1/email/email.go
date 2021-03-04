@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	log "github.com/golang/glog"
 
+	"github.com/mayadata-io/kubera-auth/pkg/types"
 	controller "github.com/mayadata-io/kubera-auth/versionedController/v1"
 )
 
@@ -45,7 +46,7 @@ func (emailController *EmailController) Post(c *gin.Context) {
 func (emailController *EmailController) Get(c *gin.Context) {
 	token := c.Query("access")
 
-	jwtUserInfo, err := controller.Server.GetUserFromToken(token)
+	jwtUserCredentials, err := controller.Server.GetUserFromToken(token)
 	if err != nil {
 		log.Error("Error occurred while parsing jwt token error: " + err.Error())
 		c.JSON(http.StatusUnauthorized, gin.H{
@@ -53,7 +54,7 @@ func (emailController *EmailController) Get(c *gin.Context) {
 		})
 		return
 	}
-	c.Set("userInfo", jwtUserInfo)
+	c.Set(types.JWTUserCredentialsKey, jwtUserCredentials)
 
 	controller.Server.VerifyEmail(c)
 }
