@@ -45,6 +45,7 @@ func (emailController *EmailController) Post(c *gin.Context) {
 //Get verifies the email by a link
 func (emailController *EmailController) Get(c *gin.Context) {
 	token := c.Query("access")
+	redirectURL := types.PortalURL + "/verified-email"
 
 	jwtUserCredentials, err := controller.Server.GetUserFromToken(token)
 	if err != nil {
@@ -52,11 +53,13 @@ func (emailController *EmailController) Get(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"error": err.Error(),
 		})
+		// Redirecting user back to UI if access token is not valid
+		c.Redirect(http.StatusUnauthorized, redirectURL)
 		return
 	}
 	c.Set(types.JWTUserCredentialsKey, jwtUserCredentials)
 
-	controller.Server.VerifyEmail(c)
+	controller.Server.VerifyEmail(c, redirectURL)
 }
 
 // Register will rsgister this controller to the specified router

@@ -334,7 +334,7 @@ func (s *Server) SendVerificationLink(c *gin.Context, email string) {
 	}
 	jwtUserCredentials := jwtUser.(*models.UserCredentials)
 
-	jwtUserCredentials.Email = &email
+	jwtUserCredentials.UnverifiedEmail = &email
 	updatedUserInfo, err := usermanager.UpdateUserDetails(s.userStore, jwtUserCredentials)
 	if err != nil {
 		s.redirectError(c, err)
@@ -378,29 +378,36 @@ func (s *Server) SendVerificationLink(c *gin.Context, email string) {
 }
 
 // VerifyEmail marks a user email as verified
-func (s *Server) VerifyEmail(c *gin.Context) {
+func (s *Server) VerifyEmail(c *gin.Context, redirectURL string) {
 	jwtUser, exists := c.Get(types.JWTUserCredentialsKey)
 	if !exists {
 		s.redirectError(c, errors.ErrInvalidAccessToken)
+		// Redirecting user to UI if the user is not authorized
+		c.Redirect(http.StatusUnauthorized, redirectURL)
 		return
 	}
 	jwtUserCredentials := jwtUser.(*models.UserCredentials)
 
-	updatedUserInfo, err := usermanager.UpdateUserDetails(s.userStore, jwtUserCredentials)
-	if err != nil {
-		s.redirect(c, err)
-	}
-
-	tgr := &jwtmanager.TokenGenerateRequest{
-		UserInfo:       updatedUserInfo,
-		AccessTokenExp: time.Minute * 10,
-	}
-
-	ti, err := jwtmanager.GenerateAuthToken(s.accessGenerate, tgr, models.TokenVerify)
-	if err != nil {
-		s.redirectError(c, err)
+	if jwtUserCredentials.UnverifiedEmail != nil {
+		*jwtUserCredentials.Email = jwtUserCredentials.GetUnverifiedEmail()
+		*jwtUserCredentials.UnverifiedEmail = ""
+	} else {
+		log.Errorln("No email found to be verified for user uid: ", jwtUserCredentials.GetUID())
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "No email found to be verified",
+		})
+		// Redirecting user to UI if no email found in field `unverified_email`
+		c.Redirect(http.StatusBadRequest, redirectURL)
 		return
 	}
 
-	s.redirect(c, s.getTokenData(ti))
+	_, err := usermanager.UpdateUserDetails(s.userStore, jwtUserCredentials)
+	if err != nil {
+		s.redirectError(c, err)
+		// Redirecting user to UI if updating the database fails
+		c.Redirect(http.StatusInternalServerError, redirectURL)
+	}
+
+	log.Infoln("Email: ", jwtUserCredentials.GetEmail(), " is verified successfully for user uid: ", jwtUserCredentials.GetUID())
+	c.Redirect(http.StatusFound, redirectURL)
 }
