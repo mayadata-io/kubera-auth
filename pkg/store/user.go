@@ -87,8 +87,7 @@ func (us *UserStore) cHandler(name string, handler func(c *mgo.Collection)) {
 func (us *UserStore) Set(user *models.UserCredentials) (err error) {
 	us.cHandler(us.ucfg.UsersCName, func(c *mgo.Collection) {
 		// user.UID = uuid.Must(uuid.NewRandom()).String()
-		currentTime := time.Now()
-		user.CreatedAt = &currentTime
+		user.CreatedAt = time.Now()
 		if cerr := c.Insert(user); cerr != nil {
 			err = cerr
 			return
@@ -112,8 +111,7 @@ func (us *UserStore) GetAllUsers() (users []*models.UserCredentials, err error) 
 //UpdateUser updates the user
 func (us *UserStore) UpdateUser(user *models.UserCredentials) (err error) {
 	us.cHandler(us.ucfg.UsersCName, func(c *mgo.Collection) {
-		currentTime := time.Now()
-		user.UpdatedAt = &currentTime
+		user.UpdatedAt = time.Now()
 		if cerr := c.UpdateId(user.ID, user); cerr != nil {
 			err = cerr
 			return

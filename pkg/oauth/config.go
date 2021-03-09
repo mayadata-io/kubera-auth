@@ -31,8 +31,9 @@ func NewGoogleConfig() SocialAuthConfig {
 		Config: oauth2.Config{
 			ClientID:     os.Getenv(types.GOOGLE_CLIENT_ID),
 			ClientSecret: os.Getenv(types.GOOGLE_CLIENT_SECRET),
-			Scopes:       []string{},
+			Scopes:       []string{"email", "profile", "openid"},
 			Endpoint:     google.Endpoint,
+			RedirectURL:  types.PortalURL,
 		},
 	}
 }

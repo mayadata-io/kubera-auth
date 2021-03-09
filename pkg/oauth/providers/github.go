@@ -1,6 +1,7 @@
 package providers
 
 import (
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -12,7 +13,7 @@ import (
 )
 
 // getUserFromToken Returns the user information from the token
-func getUserFromToken(c *gin.Context, token *oauth2.Token) (*models.UserCredentials, error) {
+func getGitHubUser(c *gin.Context, token *oauth2.Token) (*models.UserCredentials, error) {
 	ctx := c.Request.Context()
 	ts := oauth2.StaticTokenSource(token)
 	tc := oauth2.NewClient(ctx, ts)
@@ -34,9 +35,9 @@ func getUserFromToken(c *gin.Context, token *oauth2.Token) (*models.UserCredenti
 		Kind:         models.GithubAuth,
 		Role:         models.RoleUser,
 		State:        models.StateActive,
-		SocialAuthID: githubUser.ID,
 		LoggedIn:     true,
-		CreatedAt:    &currTime,
+		SocialAuthID: strconv.FormatInt(*githubUser.ID, 10),
+		CreatedAt:    currTime,
 	}
 
 	for _, githubUserEmail := range githubUserEmails {
@@ -58,7 +59,7 @@ func GetGithubUser(c *gin.Context) (*models.UserCredentials, error) {
 		return nil, err
 	}
 
-	githubUser, err := getUserFromToken(c, token)
+	githubUser, err := getGitHubUser(c, token)
 	if err != nil {
 		log.Errorln("Error getting user from github", err)
 		return nil, err

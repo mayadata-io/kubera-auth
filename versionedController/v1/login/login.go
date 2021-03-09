@@ -59,25 +59,24 @@ func (login *LoginController) Get(c *gin.Context) {
 	authType := c.Query("auth_type")
 	switch models.AuthType(authType) {
 	case models.GithubAuth:
-		{
-			if !controller.Server.Config.DisableGithubAuth {
-				githubURL := controller.Server.GithubConfig.AuthCodeURL(types.GithubState)
-				c.Redirect(http.StatusFound, githubURL)
-			} else if !controller.Server.Config.DisableGoogleAuth {
-				googleURL := controller.Server.GoogleConfig.AuthCodeURL()
-			}
-			else {
-				c.JSON(http.StatusBadRequest, gin.H{
-					"error": "Authentication type not allowed",
-				})
-			}
-		}
-	default:
-		{
+		if !controller.Server.Config.DisableGithubAuth {
+			githubURL := controller.Server.GithubConfig.AuthCodeURL(types.GithubState)
+			c.Redirect(http.StatusFound, githubURL)
+		} else {
 			c.JSON(http.StatusBadRequest, gin.H{
-				"error": "Unknown Authentication Type",
+				"error": "Authentication type not allowed",
 			})
 		}
+	case models.GmailAuth:
+		if !controller.Server.Config.DisableGoogleAuth {
+			googleURL := controller.Server.GoogleConfig.AuthCodeURL(types.GoogleState)
+			log.Info(googleURL)
+			c.Redirect(http.StatusFound, googleURL)
+		}
+	default:
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Unknown Authentication Type",
+		})
 	}
 }
 

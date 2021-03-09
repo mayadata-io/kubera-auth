@@ -6,7 +6,6 @@ import (
 
 	"github.com/globalsign/mgo/bson"
 	log "github.com/golang/glog"
-
 	"github.com/mayadata-io/kubera-auth/pkg/types"
 	"github.com/mayadata-io/kubera-auth/pkg/utils/uuid"
 )
@@ -22,7 +21,7 @@ type UserCredentials struct {
 	ID              bson.ObjectId   `bson:"_id,omitempty" json:"_id"`
 	UID             string          `bson:"uid,omitempty" json:"uid"`
 	UserName        string          `bson:"username,omitempty" json:"username"`
-	Password        string          `bson:"password,omitempty" json: "password"`
+	Password        string          `bson:"password,omitempty" json:"password"`
 	Email           string          `bson:"email,omitempty" json:"email"`
 	UnverifiedEmail string          `bson:"unverified_email,omitempty" json:"unverified_email"`
 	Company         string          `bson:"company,omitempty" json:"company"`
@@ -31,12 +30,13 @@ type UserCredentials struct {
 	Kind            AuthType        `bson:"kind,omitempty" json:"kind"`
 	Role            Role            `bson:"role,omitempty" json:"role"`
 	LoggedIn        bool            `bson:"logged_in,omitempty" json:"logged_in"`
-	SocialAuthID    *int64          `bson:"social_auth_id,omitempty" json:"social_auth_id"`
+	SocialAuthID    string          `bson:"social_auth_id,omitempty" json:"social_auth_id"`
 	CreatedAt       *time.Time      `bson:"created_at,omitempty" json:"created_at"`
 	UpdatedAt       *time.Time      `bson:"updated_at,omitempty" json:"updated_at"`
 	RemovedAt       *time.Time      `bson:"removed_at,omitempty" json:"removed_at"`
 	State           State           `bson:"state,omitempty" json:"state"`
 	OnBoardingState OnBoardingState `bson:"onboarding_state,omitempty" json:"onboarding_state"`
+	Photo           string          `bson:"pictureUrl,omitempty" json:"pictureUrl"`
 }
 
 //AuthType determines the type of authentication opted by the user for login
@@ -67,6 +67,7 @@ const (
 // OnBoardingState helps UI to define the state at which the user is currently while being onBoarded
 type OnBoardingState int
 
+// golint: unused
 const (
 	BoardingStateInvalid               OnBoardingState = iota // Invalid State used as zero value
 	BoardingStateSignup                                       // Signup started (EmailNotVerified)
@@ -99,10 +100,10 @@ type PublicUserInfo struct {
 	Kind            AuthType        `json:"kind"`
 	Role            Role            `json:"role"`
 	LoggedIn        bool            `json:"logged_in"`
-	SocialAuthID    *int64          `json:"social_auth_id"`
 	CreatedAt       *time.Time      `json:"created_at"`
 	UpdatedAt       *time.Time      `json:"updated_at"`
 	RemovedAt       *time.Time      `json:"removed_at"`
+	SocialAuthID    string          `json:"social_auth_id,omitempty"`
 	State           State           `json:"state"`
 	OnBoardingState OnBoardingState `json:"onboarding_state"`
 }
@@ -116,6 +117,7 @@ const (
 	//StateActive means user has logged in successfully
 	StateActive State = "active"
 	//StateRemoved means user has been deleted
+	// golint: unused
 	StateRemoved State = "removed"
 )
 

@@ -9,7 +9,7 @@ import (
 	log "github.com/golang/glog"
 
 	"github.com/mayadata-io/kubera-auth/pkg/models"
-	providers "github.com/mayadata-io/kubera-auth/pkg/oauth/providers/github"
+	"github.com/mayadata-io/kubera-auth/pkg/oauth/providers"
 	"github.com/mayadata-io/kubera-auth/pkg/types"
 	v1 "github.com/mayadata-io/kubera-auth/versionedController/v1"
 	"github.com/mayadata-io/kubera-auth/versionedController/v1/configuration"
@@ -102,6 +102,7 @@ func CallbackRequest(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": err.Error(),
 			})
+			log.Info(urlString)
 			c.Redirect(http.StatusFound, urlString)
 		}
 	default:
