@@ -10,6 +10,7 @@ RUN CGO_ENABLED=0 go build -o /output/server -v ./src/
 FROM alpine:latest
 
 COPY --from=builder /output/server /
+COPY --from=builder /auth-server/templates /templates
 
 RUN addgroup -S kubera && adduser -S -G kubera 1001 
 USER 1001
