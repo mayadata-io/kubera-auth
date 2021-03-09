@@ -17,7 +17,7 @@ type EmailController struct {
 
 //Model ...
 type Model struct {
-	Email string `json:"email,omitempty"`
+	UnverifiedEmail string `json:"unverified_email,omitempty"`
 }
 
 // New creates a new User
@@ -39,7 +39,7 @@ func (emailController *EmailController) Post(c *gin.Context) {
 		return
 	}
 
-	controller.Server.SendVerificationLink(c, emailModel.Email)
+	controller.Server.SendVerificationLink(c, emailModel.UnverifiedEmail)
 }
 
 //Get verifies the email by a link

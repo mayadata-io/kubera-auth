@@ -326,7 +326,7 @@ func (s *Server) GetUserByUserName(c *gin.Context, userID string) {
 }
 
 // SendVerificationLink sends the verification link in the desired email
-func (s *Server) SendVerificationLink(c *gin.Context, email string) {
+func (s *Server) SendVerificationLink(c *gin.Context, unverifiedEmail string) {
 	jwtUser, exists := c.Get(types.JWTUserCredentialsKey)
 	if !exists {
 		s.redirectError(c, errors.ErrInvalidAccessToken)
@@ -334,7 +334,7 @@ func (s *Server) SendVerificationLink(c *gin.Context, email string) {
 	}
 	jwtUserCredentials := jwtUser.(*models.UserCredentials)
 
-	jwtUserCredentials.UnverifiedEmail = &email
+	jwtUserCredentials.UnverifiedEmail = &unverifiedEmail
 	updatedUserInfo, err := usermanager.UpdateUserDetails(s.userStore, jwtUserCredentials)
 	if err != nil {
 		s.redirectError(c, err)
@@ -363,7 +363,7 @@ func (s *Server) SendVerificationLink(c *gin.Context, email string) {
 		return
 	}
 
-	err = generates.SendEmail(email, "Email Verification", buf.String())
+	err = generates.SendEmail(unverifiedEmail, "Email Verification", buf.String())
 	if err != nil {
 		log.Error("Error occurred while sending email for user: " + jwtUserCredentials.GetUID() + "error: " + err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{
