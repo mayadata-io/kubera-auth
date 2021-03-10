@@ -90,7 +90,7 @@ func (s *Server) LocalLoginRequest(c *gin.Context, username, password string) {
 	s.successResponse(c, s.getTokenData(tokenInfo))
 }
 
-//SocialLoginRequest logs in the user with github or gmail
+// SocialLoginRequest logs in the user with github or gmail
 func (s *Server) SocialLoginRequest(c *gin.Context, user *models.UserCredentials, urlString string) {
 	values := url.Values{}
 	tokenInfo, err := loginmanager.SocialLoginUser(s.userStore, s.accessGenerate, user)

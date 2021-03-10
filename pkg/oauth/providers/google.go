@@ -48,7 +48,7 @@ func getGoogleUser(c *gin.Context, token *oauth2.Token) (*models.UserCredentials
 	}
 	user := models.UserCredentials{
 		Name:         gUser.Name,
-		Kind:         models.GmailAuth,
+		Kind:         models.GoogleAuth,
 		Role:         models.RoleUser,
 		Email:        gUser.Email,
 		State:        models.StateActive,

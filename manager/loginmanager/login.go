@@ -3,6 +3,7 @@ package loginmanager
 import (
 	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
+	log "github.com/golang/glog"
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/mayadata-io/kubera-auth/manager/jwtmanager"
@@ -35,7 +36,8 @@ func LocalLoginUser(userStore *store.UserStore, accessGenerate *generates.JWTAcc
 
 // SocialLoginUser get the user information
 func SocialLoginUser(userStore *store.UserStore, accessGenerate *generates.JWTAccessGenerate, user *models.UserCredentials) (*models.Token, error) {
-	query := bson.M{"social_auth_id": user.SocialAuthID}
+	log.Infof("%v", user)
+	query := bson.M{"social_auth_id": user.SocialAuthID, "kind": user.Kind}
 	storedUser, err := userStore.GetUser(query)
 	if err != nil && err == mgo.ErrNotFound {
 		// If user does not exists

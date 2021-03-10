@@ -43,14 +43,14 @@ type UserCredentials struct {
 type AuthType string
 
 const (
-	//LocalAuth is the local authentication needs username and a password
+	// LocalAuth is the local authentication needs username and a password
 	LocalAuth AuthType = "local"
 
-	//GithubAuth authenticates via github
+	// GithubAuth authenticates via github OAuth
 	GithubAuth AuthType = "github"
 
-	//GmailAuth authenticates via gmail
-	GmailAuth AuthType = "gmail"
+	// GoogleAuth authenticates via Google OAuth
+	GoogleAuth AuthType = "google"
 )
 
 // Role states the role of the user in the portal

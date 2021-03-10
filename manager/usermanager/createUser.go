@@ -66,7 +66,7 @@ func CreateUser(userStore *store.UserStore, user *models.UserCredentials, isSign
 	return newUser.GetPublicInfo(), err
 }
 
-//CreateSocialUser creates a user if the user opts logging in with some oauth
+// CreateSocialUser creates a user if the user opts logging in with some oauth
 func CreateSocialUser(userStore *store.UserStore, user *models.UserCredentials) error {
 	query := bson.M{"email": user.Email, "kind": models.LocalAuth}
 	storedUser, err := userStore.GetUser(query)

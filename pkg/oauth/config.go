@@ -29,6 +29,9 @@ func NewGithubConfig() SocialAuthConfig {
 func NewGoogleConfig() SocialAuthConfig {
 	return SocialAuthConfig{
 		Config: oauth2.Config{
+			/* TODO: Get these from the configmap or secret so that,
+			   one can get the previously set values using the admin REST API
+			*/
 			ClientID:     os.Getenv(types.GOOGLE_CLIENT_ID),
 			ClientSecret: os.Getenv(types.GOOGLE_CLIENT_SECRET),
 			Scopes:       []string{"email", "profile", "openid"},

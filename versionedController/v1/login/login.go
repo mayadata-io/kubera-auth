@@ -67,11 +67,15 @@ func (login *LoginController) Get(c *gin.Context) {
 				"error": "Authentication type not allowed",
 			})
 		}
-	case models.GmailAuth:
+	case models.GoogleAuth:
 		if !controller.Server.Config.DisableGoogleAuth {
 			googleURL := controller.Server.GoogleConfig.AuthCodeURL(types.GoogleState)
 			log.Info(googleURL)
 			c.Redirect(http.StatusFound, googleURL)
+		} else {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "Authentication type not allowed",
+			})
 		}
 	default:
 		c.JSON(http.StatusBadRequest, gin.H{
