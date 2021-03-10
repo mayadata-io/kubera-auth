@@ -12,9 +12,27 @@ import (
 
 // UpdateUserDetails get the user information
 func UpdateUserDetails(userStore *store.UserStore, user *models.UserCredentials) (*models.PublicUserInfo, error) {
-	// This is just for github auth. Will implement a switch  case here once we have a self signup
-	if user.OnBoardingState == models.BoardingStateEmailVerified && user.Kind == models.GithubAuth {
-		user.OnBoardingState = models.BoardingStateVerifiedAndComplete
+	switch user.OnBoardingState {
+	case models.BoardingStateSignup:
+		{
+			if user.Email != nil {
+				user.OnBoardingState = models.BoardingStateEmailVerified
+			} else if user.Company != nil {
+				user.OnBoardingState = models.BoardingStateUnverifiedAndComplete
+			}
+		}
+	case models.BoardingStateEmailVerified:
+		{
+			if user.Company != nil {
+				user.OnBoardingState = models.BoardingStateVerifiedAndComplete
+			}
+		}
+	case models.BoardingStateUnverifiedAndComplete:
+		{
+			if user.Email != nil {
+				user.OnBoardingState = models.BoardingStateVerifiedAndComplete
+			}
+		}
 	}
 
 	err := userStore.UpdateUser(user)

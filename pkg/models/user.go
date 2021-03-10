@@ -79,13 +79,13 @@ var adminUID = uuid.Must(uuid.NewRandom()).String()
 
 //DefaultUser is the admin user created by default
 var DefaultUser = &UserCredentials{
-	UID:      &adminUID,
-	Name:     &types.DefaultName,
-	Email:    &types.DefaultEmail,
-	UserName: &types.DefaultUserName,
-	Password: &types.DefaultUserPassword,
-	Role:     RoleAdmin,
-	Kind:     LocalAuth,
+	UID:             &adminUID,
+	Name:            &types.DefaultName,
+	UnverifiedEmail: &types.DefaultUserName,
+	UserName:        &types.DefaultUserName,
+	Password:        &types.DefaultUserPassword,
+	Role:            RoleAdmin,
+	Kind:            LocalAuth,
 }
 
 //PublicUserInfo displays the information of the user that is publicly available

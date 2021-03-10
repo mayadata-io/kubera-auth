@@ -11,6 +11,7 @@ import (
 	log "github.com/golang/glog"
 	"github.com/imdario/mergo"
 
+	"github.com/mayadata-io/kubera-auth/manager/emailmanager"
 	"github.com/mayadata-io/kubera-auth/manager/jwtmanager"
 	"github.com/mayadata-io/kubera-auth/manager/loginmanager"
 	"github.com/mayadata-io/kubera-auth/manager/usermanager"
@@ -295,6 +296,33 @@ func (s *Server) CreateRequest(c *gin.Context, user *models.UserCredentials) {
 	s.redirectError(c, errors.ErrInvalidUser)
 }
 
+// SelfSignupUser lets a user to signup into kubera by filling a signup form
+func (s *Server) SelfSignupUser(c *gin.Context, user *models.UserCredentials) {
+	if user.GetPassword() == "" || user.GetUserName() == "" {
+		s.redirectError(c, errors.ErrInvalidRequest)
+		return
+	}
+
+	createdUserInfo, err := usermanager.CreateUser(s.userStore, user)
+	if err != nil {
+		s.redirectError(c, err)
+		return
+	}
+
+	err = emailmanager.SendVerificationEmail(s.accessGenerate, createdUserInfo)
+	if err != nil {
+		s.redirectError(c, err)
+		return
+	}
+
+	tokenInfo, err := loginmanager.LocalLoginUser(s.userStore, s.accessGenerate, user.GetUserName(), user.GetPassword())
+	if err != nil {
+		s.redirectError(c, err)
+		return
+	}
+	s.redirect(c, s.getTokenData(tokenInfo))
+}
+
 // GetUsersRequest gets all the users
 func (s *Server) GetUsersRequest(c *gin.Context) {
 	users, err := usermanager.GetAllUsers(s.userStore)
@@ -341,34 +369,9 @@ func (s *Server) SendVerificationLink(c *gin.Context, unverifiedEmail string) {
 		return
 	}
 
-	tgr := &jwtmanager.TokenGenerateRequest{
-		UserInfo:       updatedUserInfo,
-		AccessTokenExp: time.Minute * types.VerificationLinkExpirationTimeUnit,
-	}
-
-	tokenInfo, err := jwtmanager.GenerateAuthToken(s.accessGenerate, tgr, models.TokenVerify)
+	err = emailmanager.SendVerificationEmail(s.accessGenerate, updatedUserInfo)
 	if err != nil {
 		s.redirectError(c, err)
-		return
-	}
-
-	link := types.PortalURL + "/api/auth/v1/email?access=" + tokenInfo.Access
-
-	buf, err := generates.GetEmailBody(jwtUserCredentials.GetName(), link)
-	if err != nil {
-		log.Error("Error occurred while getting email body for user: " + jwtUserCredentials.GetUID() + "error: " + err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
-		return
-	}
-
-	err = generates.SendEmail(unverifiedEmail, "Email Verification", buf.String())
-	if err != nil {
-		log.Error("Error occurred while sending email for user: " + jwtUserCredentials.GetUID() + "error: " + err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
 		return
 	}
 
@@ -381,21 +384,22 @@ func (s *Server) VerifyEmail(c *gin.Context, redirectURL string) {
 	if !exists {
 		s.redirectError(c, errors.ErrInvalidAccessToken)
 		// Redirecting user to UI if the user is not authorized
-		c.Redirect(http.StatusUnauthorized, redirectURL)
+		c.Redirect(http.StatusPermanentRedirect, redirectURL)
 		return
 	}
 	jwtUserCredentials := jwtUser.(*models.UserCredentials)
 
 	if jwtUserCredentials.UnverifiedEmail != nil {
-		*jwtUserCredentials.Email = jwtUserCredentials.GetUnverifiedEmail()
-		*jwtUserCredentials.UnverifiedEmail = ""
+		tmp := jwtUserCredentials.GetUnverifiedEmail()
+		jwtUserCredentials.Email = &tmp
+		jwtUserCredentials.UnverifiedEmail = nil
 	} else {
 		log.Errorln("No email found to be verified for user uid: ", jwtUserCredentials.GetUID())
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "No email found to be verified",
 		})
 		// Redirecting user to UI if no email found in field `unverified_email`
-		c.Redirect(http.StatusBadRequest, redirectURL)
+		c.Redirect(http.StatusPermanentRedirect, redirectURL)
 		return
 	}
 
@@ -403,9 +407,9 @@ func (s *Server) VerifyEmail(c *gin.Context, redirectURL string) {
 	if err != nil {
 		s.redirectError(c, err)
 		// Redirecting user to UI if updating the database fails
-		c.Redirect(http.StatusInternalServerError, redirectURL)
+		c.Redirect(http.StatusPermanentRedirect, redirectURL)
 	}
 
 	log.Infoln("Email: ", jwtUserCredentials.GetEmail(), " is verified successfully for user uid: ", jwtUserCredentials.GetUID())
-	c.Redirect(http.StatusFound, redirectURL)
+	c.Redirect(http.StatusPermanentRedirect, redirectURL)
 }

@@ -54,7 +54,7 @@ func (emailController *EmailController) Get(c *gin.Context) {
 			"error": err.Error(),
 		})
 		// Redirecting user back to UI if access token is not valid
-		c.Redirect(http.StatusUnauthorized, redirectURL)
+		c.Redirect(http.StatusPermanentRedirect, redirectURL)
 		return
 	}
 	c.Set(types.JWTUserCredentialsKey, jwtUserCredentials)

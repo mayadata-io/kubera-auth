@@ -1,6 +1,8 @@
 package usermanager
 
 import (
+	"time"
+
 	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
 	"github.com/mayadata-io/kubera-auth/pkg/errors"
@@ -26,11 +28,28 @@ func CreateUser(userStore *store.UserStore, user *models.UserCredentials) (*mode
 	}
 
 	password := string(hashedPassword)
-	user.Password = &password
 	uid := uuid.Must(uuid.NewRandom()).String()
-	user.UID = &uid
-	err = userStore.Set(user)
-	return user.GetPublicInfo(), err
+	var role models.Role
+	if user.GetRole() != "" {
+		role = user.Role
+	} else {
+		role = models.RoleUser
+	}
+
+	newUser := &models.UserCredentials{
+		UID:             &uid,
+		UserName:        user.UserName,
+		Password:        &password,
+		Name:            user.Name,
+		UnverifiedEmail: user.UserName,
+		Kind:            models.LocalAuth,
+		Role:            role,
+		OnBoardingState: models.BoardingStateSignup,
+		CreatedAt:       &time.Time{},
+	}
+
+	err = userStore.Set(newUser)
+	return newUser.GetPublicInfo(), err
 }
 
 //CreateSocialUser creates a user if the user opts logging in with some oauth
