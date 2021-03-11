@@ -10,7 +10,7 @@ import (
 	controller "github.com/mayadata-io/kubera-auth/versionedController/v1"
 )
 
-//SignupController is the type the request in which the request will be parsed
+//SignupController is the extension to GenericController which contains the path of this endpoint too.
 type SignupController struct {
 	controller.GenericController
 	routePath string
@@ -32,8 +32,8 @@ func New() *SignupController {
 
 //Post registers a user in database taking minimal details needed
 func (signupController *SignupController) Post(c *gin.Context) {
-	signuplModel := &Model{}
-	err := c.BindJSON(signuplModel)
+	signupModel := &Model{}
+	err := c.BindJSON(signupModel)
 	if err != nil {
 		log.Error(err)
 		c.JSON(http.StatusNotAcceptable, gin.H{
@@ -43,9 +43,9 @@ func (signupController *SignupController) Post(c *gin.Context) {
 	}
 
 	newUser := &models.UserCredentials{
-		UserName: &signuplModel.UnverifiedEmail,
-		Name:     &signuplModel.Name,
-		Password: &signuplModel.Password,
+		UserName: &signupModel.UnverifiedEmail,
+		Name:     &signupModel.Name,
+		Password: &signupModel.Password,
 	}
 
 	// First create the user then immediately send a verification link to his email

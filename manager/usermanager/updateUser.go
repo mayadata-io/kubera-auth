@@ -10,8 +10,11 @@ import (
 	"github.com/mayadata-io/kubera-auth/pkg/types"
 )
 
-// UpdateUserDetails get the user information
+// UpdateUserDetails updates the user information
 func UpdateUserDetails(userStore *store.UserStore, user *models.UserCredentials) (*models.PublicUserInfo, error) {
+	// There will be following possible transitions of OnboardingState
+	// BoardingStateSignup -> BoardingStateEmailVerified -> BoardingStateVerifiedAndComplete
+	// BoardingStateSignup -> BoardingStateUnverifiedAndComplete -> BoardingStateVerifiedAndComplete
 	switch user.OnBoardingState {
 	case models.BoardingStateSignup:
 		{
@@ -39,7 +42,7 @@ func UpdateUserDetails(userStore *store.UserStore, user *models.UserCredentials)
 	return user.GetPublicInfo(), err
 }
 
-// UpdatePassword get the user information
+// UpdatePassword sets the user password
 func UpdatePassword(userStore *store.UserStore, reset bool, oldPassword, newPassword, userID string) (*models.PublicUserInfo, error) {
 	var storedUser *models.UserCredentials
 	var err error
