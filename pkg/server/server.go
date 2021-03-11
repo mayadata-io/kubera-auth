@@ -372,9 +372,7 @@ func (s *Server) SendVerificationLink(c *gin.Context, unverifiedEmail string) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"message": "Verification email sent",
-	})
+	s.redirect(c, jwtUserCredentials.GetPublicInfo())
 }
 
 // VerifyEmail marks a user email as verified
