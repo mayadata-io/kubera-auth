@@ -393,6 +393,10 @@ func (s *Server) VerifyEmail(c *gin.Context, redirectURL string) {
 		tmp := jwtUserCredentials.GetUnverifiedEmail()
 		jwtUserCredentials.Email = &tmp
 		jwtUserCredentials.UnverifiedEmail = nil
+		if jwtUserCredentials.GetKind() == models.LocalAuth {
+			jwtUserCredentials.UserName = new(string)
+			*jwtUserCredentials.UserName = tmp
+		}
 	} else {
 		log.Errorln("No email found to be verified for user uid: ", jwtUserCredentials.GetUID())
 		c.JSON(http.StatusBadRequest, gin.H{
