@@ -81,11 +81,11 @@ var adminUID = uuid.Must(uuid.NewRandom()).String()
 var DefaultUser = &UserCredentials{
 	UID:             &adminUID,
 	Name:            &types.DefaultName,
-	UnverifiedEmail: &types.DefaultUserName,
 	UserName:        &types.DefaultUserName,
 	Password:        &types.DefaultUserPassword,
 	Role:            RoleAdmin,
 	Kind:            LocalAuth,
+	OnBoardingState: BoardingStateUnverifiedAndComplete,
 }
 
 //PublicUserInfo displays the information of the user that is publicly available

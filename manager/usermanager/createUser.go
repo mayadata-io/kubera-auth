@@ -29,23 +29,21 @@ func CreateUser(userStore *store.UserStore, user *models.UserCredentials) (*mode
 
 	password := string(hashedPassword)
 	uid := uuid.Must(uuid.NewRandom()).String()
-	var role models.Role
-	if user.GetRole() != "" {
-		role = user.Role
+	var newUser *models.UserCredentials
+	if user.GetRole() == models.RoleAdmin {
+		newUser = user
 	} else {
-		role = models.RoleUser
-	}
-
-	newUser := &models.UserCredentials{
-		UID:             &uid,
-		UserName:        user.UserName,
-		Password:        &password,
-		Name:            user.Name,
-		UnverifiedEmail: user.UserName,
-		Kind:            models.LocalAuth,
-		Role:            role,
-		OnBoardingState: models.BoardingStateSignup,
-		CreatedAt:       &time.Time{},
+		newUser = &models.UserCredentials{
+			UID:             &uid,
+			UserName:        user.UserName,
+			Password:        &password,
+			Name:            user.Name,
+			UnverifiedEmail: user.UserName,
+			Kind:            models.LocalAuth,
+			Role:            models.RoleUser,
+			OnBoardingState: models.BoardingStateSignup,
+			CreatedAt:       &time.Time{},
+		}
 	}
 
 	err = userStore.Set(newUser)
