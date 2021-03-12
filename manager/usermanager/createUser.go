@@ -29,9 +29,11 @@ func CreateUser(userStore *store.UserStore, user *models.UserCredentials) (*mode
 
 	password := string(hashedPassword)
 	uid := uuid.Must(uuid.NewRandom()).String()
+
 	var newUser *models.UserCredentials
 	if user.GetRole() == models.RoleAdmin {
 		newUser = user
+		newUser.Password = &password
 	} else {
 		newUser = &models.UserCredentials{
 			UID:             &uid,
