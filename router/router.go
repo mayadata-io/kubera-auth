@@ -16,6 +16,7 @@ import (
 	"github.com/mayadata-io/kubera-auth/versionedController/v1/email"
 	"github.com/mayadata-io/kubera-auth/versionedController/v1/login"
 	"github.com/mayadata-io/kubera-auth/versionedController/v1/password"
+	"github.com/mayadata-io/kubera-auth/versionedController/v1/signup"
 	"github.com/mayadata-io/kubera-auth/versionedController/v1/user"
 )
 
@@ -31,6 +32,7 @@ var (
 		password.New(),
 		configuration.New(),
 		email.New(),
+		signup.New(),
 	}
 	unauthenticatedLinks = map[string][]string{
 		"/v1" + v1.TokenRoute:         {http.MethodPost, http.MethodGet},
@@ -38,6 +40,7 @@ var (
 		"/v1" + "/oauth":              {http.MethodGet},
 		"/v1" + v1.ConfigurationRoute: {http.MethodGet},
 		"/v1" + healthCheckRoute:      {http.MethodGet},
+		"/v1" + v1.SignupRoute:        {http.MethodPost},
 	}
 )
 

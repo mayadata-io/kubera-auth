@@ -10,18 +10,39 @@ import (
 	"github.com/mayadata-io/kubera-auth/pkg/types"
 )
 
-// UpdateUserDetails get the user information
+// UpdateUserDetails updates the user information
 func UpdateUserDetails(userStore *store.UserStore, user *models.UserCredentials) (*models.PublicUserInfo, error) {
-	// This is just for github auth. Will implement a switch  case here once we have a self signup
-	if user.OnBoardingState == models.BoardingStateEmailVerified && user.Kind == models.GithubAuth {
-		user.OnBoardingState = models.BoardingStateVerifiedAndComplete
+	// There will be following possible transitions of OnboardingState
+	// BoardingStateSignup -> BoardingStateEmailVerified -> BoardingStateVerifiedAndComplete
+	// BoardingStateSignup -> BoardingStateUnverifiedAndComplete -> BoardingStateVerifiedAndComplete
+	switch user.OnBoardingState {
+	case models.BoardingStateSignup:
+		{
+			if user.Email != nil {
+				user.OnBoardingState = models.BoardingStateEmailVerified
+			} else if user.Company != nil {
+				user.OnBoardingState = models.BoardingStateUnverifiedAndComplete
+			}
+		}
+	case models.BoardingStateEmailVerified:
+		{
+			if user.Company != nil {
+				user.OnBoardingState = models.BoardingStateVerifiedAndComplete
+			}
+		}
+	case models.BoardingStateUnverifiedAndComplete:
+		{
+			if user.Email != nil {
+				user.OnBoardingState = models.BoardingStateVerifiedAndComplete
+			}
+		}
 	}
 
 	err := userStore.UpdateUser(user)
 	return user.GetPublicInfo(), err
 }
 
-// UpdatePassword get the user information
+// UpdatePassword sets the user password
 func UpdatePassword(userStore *store.UserStore, reset bool, oldPassword, newPassword, userID string) (*models.PublicUserInfo, error) {
 	var storedUser *models.UserCredentials
 	var err error
