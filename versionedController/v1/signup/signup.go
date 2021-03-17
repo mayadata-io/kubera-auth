@@ -43,9 +43,9 @@ func (signupController *SignupController) Post(c *gin.Context) {
 	}
 
 	newUser := &models.UserCredentials{
-		UserName: &signupModel.UnverifiedEmail,
-		Name:     &signupModel.Name,
-		Password: &signupModel.Password,
+		UserName: signupModel.UnverifiedEmail,
+		Name:     signupModel.Name,
+		Password: signupModel.Password,
 	}
 
 	// First create the user then immediately send a verification link to his email

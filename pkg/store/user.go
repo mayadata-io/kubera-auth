@@ -114,7 +114,7 @@ func (us *UserStore) UpdateUser(user *models.UserCredentials) (err error) {
 	us.cHandler(us.ucfg.UsersCName, func(c *mgo.Collection) {
 		currentTime := time.Now()
 		user.UpdatedAt = &currentTime
-		if cerr := c.UpdateId(user.GetID(), user); cerr != nil {
+		if cerr := c.UpdateId(user.ID, user); cerr != nil {
 			err = cerr
 			return
 		}

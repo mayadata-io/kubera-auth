@@ -24,15 +24,15 @@ func SendVerificationEmail(accessGenerate *generates.JWTAccessGenerate, userInfo
 
 	link := types.PortalURL + "/api/auth/v1/email?access=" + tokenInfo.Access
 
-	buf, err := generates.GetEmailBody(userInfo.GetName(), link)
+	buf, err := generates.GetEmailBody(userInfo.Name, link)
 	if err != nil {
-		log.Error("Error occurred while getting email body for user: " + userInfo.GetUID() + "error: " + err.Error())
+		log.Error("Error occurred while getting email body for user: " + userInfo.UID + "error: " + err.Error())
 		return err
 	}
 
-	err = generates.SendEmail(userInfo.GetUnverifiedEmail(), "Email Verification", buf.String())
+	err = generates.SendEmail(userInfo.UnverifiedEmail, "Email Verification", buf.String())
 	if err != nil {
-		log.Error("Error occurred while sending email for user: " + userInfo.GetUID() + "error: " + err.Error())
+		log.Error("Error occurred while sending email for user: " + userInfo.UID + "error: " + err.Error())
 		return err
 	}
 

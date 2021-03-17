@@ -49,7 +49,7 @@ func (user *UserController) Patch(c *gin.Context) {
 		})
 		return
 	}
-	controller.Server.ResetPasswordRequest(c, userModel.GetPassword(), userModel.GetUserName())
+	controller.Server.ResetPasswordRequest(c, userModel.Password, userModel.UserName)
 }
 
 //Post creates a user, request should be sent by admin

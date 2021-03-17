@@ -2,12 +2,11 @@ package generates
 
 import (
 	"context"
+	errs "errors"
 	"fmt"
 	"os"
 	"strings"
 	"time"
-
-	errs "errors"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/globalsign/mgo/bson"
@@ -27,7 +26,7 @@ type JWTAccessClaims struct {
 	UID      string           `json:"uid,omitempty"`
 	Role     models.Role      `json:"role,omitempty"`
 	UserName string           `json:"username,omitempty"`
-	Email    *string          `json:"email,omitempty"`
+	Email    string           `json:"email,omitempty"`
 	Name     string           `json:"name,omitempty"`
 	Type     models.TokenType `json:"type"`
 	jwt.StandardClaims
@@ -86,12 +85,12 @@ func initializeSecret() (string, error) {
 // Token based on the UUID generated token
 func (a *JWTAccessGenerate) Token(data *GenerateBasic) (string, error) {
 	claims := &JWTAccessClaims{
-		ID:       data.UserInfo.GetID(),
-		UID:      data.UserInfo.GetUID(),
-		Role:     data.UserInfo.GetRole(),
-		UserName: data.UserInfo.GetUserName(),
+		ID:       data.UserInfo.ID,
+		UID:      data.UserInfo.UID,
+		Role:     data.UserInfo.Role,
+		UserName: data.UserInfo.UserName,
 		Email:    data.UserInfo.Email,
-		Name:     data.UserInfo.GetName(),
+		Name:     data.UserInfo.Name,
 		Type:     data.TokenInfo.Type,
 		StandardClaims: jwt.StandardClaims{
 			IssuedAt:  time.Now().Unix(),
@@ -150,7 +149,7 @@ func (a *JWTAccessGenerate) Parse(tokenString string) (*models.UserCredentials, 
 
 	if claims, ok := token.Claims.(*JWTAccessClaims); ok && token.Valid {
 		user.Role = claims.Role
-		user.UID = &claims.UID
+		user.UID = claims.UID
 		user.ID = claims.ID
 		return user, nil
 	}

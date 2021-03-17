@@ -32,7 +32,7 @@ func ParseToken(userStore *store.UserStore, accessGenerate *generates.JWTAccessG
 	if err != nil {
 		return nil, err
 	}
-	user, err := usermanager.GetUserByUID(userStore, claimedUser.GetUID())
+	user, err := usermanager.GetUserByUID(userStore, claimedUser.UID)
 	if err != nil {
 		return nil, err
 	}

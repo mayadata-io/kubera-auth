@@ -111,7 +111,7 @@ func (s *Server) LogoutRequest(c *gin.Context) {
 	}
 	jwtUserCredentials := jwtUser.(*models.UserCredentials)
 
-	err := loginmanager.LogoutUser(s.userStore, jwtUserCredentials.GetID())
+	err := loginmanager.LogoutUser(s.userStore, jwtUserCredentials.ID)
 	if err != nil {
 		s.redirectError(c, err)
 		return
@@ -211,7 +211,7 @@ func (s *Server) UpdatePasswordRequest(c *gin.Context, oldPassword, newPassword 
 		return
 	}
 
-	updatedUserInfo, err := usermanager.UpdatePassword(s.userStore, false, oldPassword, newPassword, jwtUserCredentials.GetUID())
+	updatedUserInfo, err := usermanager.UpdatePassword(s.userStore, false, oldPassword, newPassword, jwtUserCredentials.UID)
 	if err != nil {
 		s.redirectError(c, err)
 		return
@@ -235,7 +235,7 @@ func (s *Server) ResetPasswordRequest(c *gin.Context, newPassword, userName stri
 
 	var updatedUserInfo *models.PublicUserInfo
 	var err error
-	if jwtUserCredentials.GetRole() == models.RoleAdmin {
+	if jwtUserCredentials.Role == models.RoleAdmin {
 		updatedUserInfo, err = usermanager.UpdatePassword(s.userStore, true, "", newPassword, userName)
 		if err != nil {
 			s.redirectError(c, err)
@@ -277,14 +277,14 @@ func (s *Server) CreateRequest(c *gin.Context, user *models.UserCredentials) {
 	}
 	jwtUserCredentials := jwtUser.(*models.UserCredentials)
 
-	if user.GetUserName() == "" || user.GetPassword() == "" {
+	if user.UserName == "" || user.Password == "" {
 		s.redirectError(c, errors.ErrInvalidRequest)
 		return
 	}
 
 	var createdUserInfo *models.PublicUserInfo
 	var err error
-	if jwtUserCredentials.GetRole() == models.RoleAdmin {
+	if jwtUserCredentials.Role == models.RoleAdmin {
 		createdUserInfo, err = usermanager.CreateUser(s.userStore, user)
 		if err != nil {
 			s.redirectError(c, err)
@@ -298,7 +298,7 @@ func (s *Server) CreateRequest(c *gin.Context, user *models.UserCredentials) {
 
 // SelfSignupUser lets a user to signup into kubera by filling a signup form
 func (s *Server) SelfSignupUser(c *gin.Context, user *models.UserCredentials) {
-	if user.GetPassword() == "" || user.GetUserName() == "" {
+	if user.Password == "" || user.UserName == "" {
 		s.redirectError(c, errors.ErrInvalidRequest)
 		return
 	}
@@ -315,7 +315,7 @@ func (s *Server) SelfSignupUser(c *gin.Context, user *models.UserCredentials) {
 		return
 	}
 
-	tokenInfo, err := loginmanager.LocalLoginUser(s.userStore, s.accessGenerate, user.GetUserName(), user.GetPassword())
+	tokenInfo, err := loginmanager.LocalLoginUser(s.userStore, s.accessGenerate, user.UserName, user.Password)
 	if err != nil {
 		s.redirectError(c, err)
 		return
@@ -362,7 +362,7 @@ func (s *Server) SendVerificationLink(c *gin.Context, unverifiedEmail string) {
 	}
 	jwtUserCredentials := jwtUser.(*models.UserCredentials)
 
-	jwtUserCredentials.UnverifiedEmail = &unverifiedEmail
+	jwtUserCredentials.UnverifiedEmail = unverifiedEmail
 	updatedUserInfo, err := usermanager.UpdateUserDetails(s.userStore, jwtUserCredentials)
 	if err != nil {
 		s.redirectError(c, err)
@@ -389,16 +389,16 @@ func (s *Server) VerifyEmail(c *gin.Context, redirectURL string) {
 	}
 	jwtUserCredentials := jwtUser.(*models.UserCredentials)
 
-	if jwtUserCredentials.UnverifiedEmail != nil {
-		tmp := jwtUserCredentials.GetUnverifiedEmail()
-		jwtUserCredentials.Email = &tmp
-		jwtUserCredentials.UnverifiedEmail = nil
-		if jwtUserCredentials.GetKind() == models.LocalAuth {
-			jwtUserCredentials.UserName = new(string)
-			*jwtUserCredentials.UserName = tmp
+	if jwtUserCredentials.UnverifiedEmail != "" {
+		// tmp := jwtUserCredentials.UnverifiedEmail
+		jwtUserCredentials.Email = jwtUserCredentials.UnverifiedEmail
+		jwtUserCredentials.UnverifiedEmail = ""
+		if jwtUserCredentials.Kind == models.LocalAuth {
+			// jwtUserCredentials.UserName = new(string)
+			jwtUserCredentials.UserName = jwtUserCredentials.Email
 		}
 	} else {
-		log.Errorln("No email found to be verified for user uid: ", jwtUserCredentials.GetUID())
+		log.Errorln("No email found to be verified for user uid: ", jwtUserCredentials.UID)
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "No email found to be verified",
 		})
@@ -414,6 +414,6 @@ func (s *Server) VerifyEmail(c *gin.Context, redirectURL string) {
 		c.Redirect(http.StatusPermanentRedirect, redirectURL)
 	}
 
-	log.Infoln("Email: ", jwtUserCredentials.GetEmail(), " is verified successfully for user uid: ", jwtUserCredentials.GetUID())
+	log.Infoln("Email: ", jwtUserCredentials.Email, " is verified successfully for user uid: ", jwtUserCredentials.UID)
 	c.Redirect(http.StatusPermanentRedirect, redirectURL)
 }
