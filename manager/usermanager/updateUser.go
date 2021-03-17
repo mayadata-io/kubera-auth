@@ -18,21 +18,21 @@ func UpdateUserDetails(userStore *store.UserStore, user *models.UserCredentials)
 	switch user.OnBoardingState {
 	case models.BoardingStateSignup:
 		{
-			if user.Email != nil {
+			if user.Email != "" {
 				user.OnBoardingState = models.BoardingStateEmailVerified
-			} else if user.Company != nil {
+			} else if user.Company != "" {
 				user.OnBoardingState = models.BoardingStateUnverifiedAndComplete
 			}
 		}
 	case models.BoardingStateEmailVerified:
 		{
-			if user.Company != nil {
+			if user.Company != "" {
 				user.OnBoardingState = models.BoardingStateVerifiedAndComplete
 			}
 		}
 	case models.BoardingStateUnverifiedAndComplete:
 		{
-			if user.Email != nil {
+			if user.Email != "" {
 				user.OnBoardingState = models.BoardingStateVerifiedAndComplete
 			}
 		}
@@ -57,7 +57,7 @@ func UpdatePassword(userStore *store.UserStore, reset bool, oldPassword, newPass
 			return nil, err
 		}
 
-		err = bcrypt.CompareHashAndPassword([]byte(storedUser.GetPassword()), []byte(oldPassword))
+		err = bcrypt.CompareHashAndPassword([]byte(storedUser.Password), []byte(oldPassword))
 		if err != nil {
 			return storedUser.GetPublicInfo(), errors.ErrInvalidPassword
 		}
@@ -70,8 +70,7 @@ func UpdatePassword(userStore *store.UserStore, reset bool, oldPassword, newPass
 		return nil, err
 	}
 
-	password := string(hashedPassword)
-	storedUser.Password = &password
+	storedUser.Password = string(hashedPassword)
 
 	err = userStore.UpdateUser(storedUser)
 	return storedUser.GetPublicInfo(), err

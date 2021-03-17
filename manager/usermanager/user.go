@@ -14,15 +14,15 @@ import (
 // IsUserExists get the user information
 func IsUserExists(userStore *store.UserStore, user *models.UserCredentials) (bool, error) {
 	exists := true
-	_, err := userStore.GetUser(bson.M{"username": user.GetUserName()})
+	_, err := userStore.GetUser(bson.M{"username": user.UserName})
 	if err != nil && err == mgo.ErrNotFound {
 		exists = false
 	} else if err != nil {
 		return false, err
 	}
 
-	if !exists && user.Email != nil {
-		_, err := userStore.GetUser(bson.M{"email": *user.Email})
+	if !exists && user.Email != "" {
+		_, err := userStore.GetUser(bson.M{"email": user.Email})
 		if err != nil && err == mgo.ErrNotFound {
 			exists = false
 		} else if err != nil {
@@ -34,7 +34,7 @@ func IsUserExists(userStore *store.UserStore, user *models.UserCredentials) (boo
 	return exists, nil
 }
 
-func generateUserName(name string) *string {
+func generateUserName(name string) string {
 	var username string
 	names := strings.Split(name, " ")
 	fname := names[0]
@@ -56,5 +56,5 @@ func generateUserName(name string) *string {
 	}
 	username = lname + appendString
 
-	return &username
+	return username
 }

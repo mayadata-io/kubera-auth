@@ -11,7 +11,6 @@ import (
 	"github.com/mayadata-io/kubera-auth/pkg/generates"
 	"github.com/mayadata-io/kubera-auth/pkg/models"
 	"github.com/mayadata-io/kubera-auth/pkg/store"
-	"github.com/mayadata-io/kubera-auth/pkg/types"
 )
 
 // LocalLoginUser verifies user password
@@ -30,7 +29,7 @@ func LocalLoginUser(userStore *store.UserStore, accessGenerate *generates.JWTAcc
 	if err != nil {
 		return nil, err
 	}
-	storedUser.LoggedIn = &types.TrueValue
+	storedUser.LoggedIn = true
 	return ti, userStore.UpdateUser(storedUser)
 }
 
@@ -50,7 +49,7 @@ func SocialLoginUser(userStore *store.UserStore, accessGenerate *generates.JWTAc
 		return nil, err
 	} else {
 		// If user exists
-		storedUser.LoggedIn = &types.TrueValue
+		storedUser.LoggedIn = true
 		err = userStore.UpdateUser(storedUser)
 		if err != nil {
 			return nil, err
@@ -70,7 +69,7 @@ func validationAuthenticateRequest(userStore *store.UserStore, username, passwor
 		return nil, err
 	}
 
-	err = bcrypt.CompareHashAndPassword([]byte(user.GetPassword()), []byte(password))
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil {
 		return nil, errors.ErrInvalidPassword
 	}
@@ -87,6 +86,6 @@ func LogoutUser(userStore *store.UserStore, id bson.ObjectId) error {
 	if err != nil {
 		return err
 	}
-	storedUser.LoggedIn = &types.FalseValue
+	storedUser.LoggedIn = false
 	return userStore.UpdateUser(storedUser)
 }

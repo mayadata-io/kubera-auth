@@ -49,7 +49,7 @@ func (configurationController *Controller) Put(c *gin.Context) {
 	if err != nil || jwtUserCredentials == nil {
 		c.JSON(http.StatusUnauthorized, err.Error())
 		return
-	} else if jwtUserCredentials.GetRole() != models.RoleAdmin {
+	} else if jwtUserCredentials.Role != models.RoleAdmin {
 		c.JSON(http.StatusUnauthorized, err.Error())
 		return
 	}
@@ -134,7 +134,7 @@ func (configurationController *Controller) Get(c *gin.Context) {
 	}
 
 	jwtUserCredentials, err := controller.Server.GetUserFromToken(tokenString)
-	if err == nil && jwtUserCredentials.GetRole() == models.RoleAdmin {
+	if err == nil && jwtUserCredentials.Role == models.RoleAdmin {
 		authData[types.GITHUB_CLIENT_ID] = controller.Server.GithubConfig.ClientID
 		authData[types.GITHUB_CLIENT_SECRET] = controller.Server.GithubConfig.ClientSecret
 	}
