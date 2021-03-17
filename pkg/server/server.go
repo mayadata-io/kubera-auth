@@ -62,12 +62,12 @@ func (s *Server) MustUserStorage(stor *store.UserStore, err error) {
 	}
 }
 
-func (s *Server) redirectError(c *gin.Context, err error) {
+func (s *Server) errorResponse(c *gin.Context, err error) {
 	data, code, _ := s.getErrorData(err)
 	c.JSON(code, data)
 }
 
-func (s *Server) redirect(c *gin.Context, data interface{}) {
+func (s *Server) successResponse(c *gin.Context, data interface{}) {
 	c.JSON(http.StatusOK, data)
 }
 
@@ -82,10 +82,10 @@ func (s *Server) LocalLoginRequest(c *gin.Context, username, password string) {
 
 	tokenInfo, err := loginmanager.LocalLoginUser(s.userStore, s.accessGenerate, username, password)
 	if err != nil {
-		s.redirectError(c, err)
+		s.errorResponse(c, err)
 		return
 	}
-	s.redirect(c, s.getTokenData(tokenInfo))
+	s.successResponse(c, s.getTokenData(tokenInfo))
 }
 
 //SocialLoginRequest logs in the user with github or gmail
@@ -94,7 +94,7 @@ func (s *Server) SocialLoginRequest(c *gin.Context, user *models.UserCredentials
 	tokenInfo, err := loginmanager.SocialLoginUser(s.userStore, s.accessGenerate, user)
 	if err != nil {
 		log.Errorln("Error logging in ", err)
-		s.redirectError(c, err)
+		s.errorResponse(c, err)
 		return
 	}
 
@@ -106,14 +106,14 @@ func (s *Server) SocialLoginRequest(c *gin.Context, user *models.UserCredentials
 func (s *Server) LogoutRequest(c *gin.Context) {
 	jwtUser, exists := c.Get(types.JWTUserCredentialsKey)
 	if !exists {
-		s.redirectError(c, errors.ErrInvalidAccessToken)
+		s.errorResponse(c, errors.ErrInvalidAccessToken)
 		return
 	}
 	jwtUserCredentials := jwtUser.(*models.UserCredentials)
 
 	err := loginmanager.LogoutUser(s.userStore, jwtUserCredentials.ID)
 	if err != nil {
-		s.redirectError(c, err)
+		s.errorResponse(c, err)
 		return
 	}
 
@@ -201,7 +201,7 @@ func (s *Server) GetUserFromToken(token string) (*models.UserCredentials, error)
 func (s *Server) UpdatePasswordRequest(c *gin.Context, oldPassword, newPassword string) {
 	jwtUser, exists := c.Get(types.JWTUserCredentialsKey)
 	if !exists {
-		s.redirectError(c, errors.ErrInvalidAccessToken)
+		s.errorResponse(c, errors.ErrInvalidAccessToken)
 		return
 	}
 	jwtUserCredentials := jwtUser.(*models.UserCredentials)
@@ -213,17 +213,17 @@ func (s *Server) UpdatePasswordRequest(c *gin.Context, oldPassword, newPassword 
 
 	updatedUserInfo, err := usermanager.UpdatePassword(s.userStore, false, oldPassword, newPassword, jwtUserCredentials.UID)
 	if err != nil {
-		s.redirectError(c, err)
+		s.errorResponse(c, err)
 		return
 	}
-	s.redirect(c, updatedUserInfo)
+	s.successResponse(c, updatedUserInfo)
 }
 
 // ResetPasswordRequest validates the request
 func (s *Server) ResetPasswordRequest(c *gin.Context, newPassword, userName string) {
 	jwtUser, exists := c.Get(types.JWTUserCredentialsKey)
 	if !exists {
-		s.redirectError(c, errors.ErrInvalidAccessToken)
+		s.errorResponse(c, errors.ErrInvalidAccessToken)
 		return
 	}
 	jwtUserCredentials := jwtUser.(*models.UserCredentials)
@@ -238,18 +238,18 @@ func (s *Server) ResetPasswordRequest(c *gin.Context, newPassword, userName stri
 	if jwtUserCredentials.Role == models.RoleAdmin {
 		updatedUserInfo, err = usermanager.UpdatePassword(s.userStore, true, "", newPassword, userName)
 		if err != nil {
-			s.redirectError(c, err)
+			s.errorResponse(c, err)
 			return
 		}
 	}
-	s.redirect(c, updatedUserInfo)
+	s.successResponse(c, updatedUserInfo)
 }
 
 // UpdateUserDetailsRequest validates the request
 func (s *Server) UpdateUserDetailsRequest(c *gin.Context, user *models.UserCredentials) {
 	jwtUser, exists := c.Get(types.JWTUserCredentialsKey)
 	if !exists {
-		s.redirectError(c, errors.ErrInvalidAccessToken)
+		s.errorResponse(c, errors.ErrInvalidAccessToken)
 		return
 	}
 	jwtUserCredentials := jwtUser.(*models.UserCredentials)
@@ -257,28 +257,28 @@ func (s *Server) UpdateUserDetailsRequest(c *gin.Context, user *models.UserCrede
 	// It will override the `jwtUserCredentials` with values filled in `user` and preserve the other values of `storedUser`
 	err := mergo.Merge(jwtUserCredentials, user, mergo.WithOverride)
 	if err != nil {
-		s.redirectError(c, err)
+		s.errorResponse(c, err)
 	}
 
 	updatedUserInfo, err := usermanager.UpdateUserDetails(s.userStore, jwtUserCredentials)
 	if err != nil {
-		s.redirectError(c, err)
+		s.errorResponse(c, err)
 		return
 	}
-	s.redirect(c, updatedUserInfo)
+	s.successResponse(c, updatedUserInfo)
 }
 
 // CreateRequest validates the request
 func (s *Server) CreateRequest(c *gin.Context, user *models.UserCredentials) {
 	jwtUser, exists := c.Get(types.JWTUserCredentialsKey)
 	if !exists {
-		s.redirectError(c, errors.ErrInvalidAccessToken)
+		s.errorResponse(c, errors.ErrInvalidAccessToken)
 		return
 	}
 	jwtUserCredentials := jwtUser.(*models.UserCredentials)
 
 	if user.UserName == "" || user.Password == "" {
-		s.redirectError(c, errors.ErrInvalidRequest)
+		s.errorResponse(c, errors.ErrInvalidRequest)
 		return
 	}
 
@@ -287,77 +287,77 @@ func (s *Server) CreateRequest(c *gin.Context, user *models.UserCredentials) {
 	if jwtUserCredentials.Role == models.RoleAdmin {
 		createdUserInfo, err = usermanager.CreateUser(s.userStore, user)
 		if err != nil {
-			s.redirectError(c, err)
+			s.errorResponse(c, err)
 			return
 		}
-		s.redirect(c, createdUserInfo)
+		s.successResponse(c, createdUserInfo)
 		return
 	}
-	s.redirectError(c, errors.ErrInvalidUser)
+	s.errorResponse(c, errors.ErrInvalidUser)
 }
 
 // SelfSignupUser lets a user to signup into kubera by filling a signup form
 func (s *Server) SelfSignupUser(c *gin.Context, user *models.UserCredentials) {
 	if user.Password == "" || user.UserName == "" {
-		s.redirectError(c, errors.ErrInvalidRequest)
+		s.errorResponse(c, errors.ErrInvalidRequest)
 		return
 	}
 
 	createdUserInfo, err := usermanager.CreateUser(s.userStore, user)
 	if err != nil {
-		s.redirectError(c, err)
+		s.errorResponse(c, err)
 		return
 	}
 
 	err = emailmanager.SendVerificationEmail(s.accessGenerate, createdUserInfo)
 	if err != nil {
-		s.redirectError(c, err)
+		s.errorResponse(c, err)
 		return
 	}
 
 	tokenInfo, err := loginmanager.LocalLoginUser(s.userStore, s.accessGenerate, user.UserName, user.Password)
 	if err != nil {
-		s.redirectError(c, err)
+		s.errorResponse(c, err)
 		return
 	}
-	s.redirect(c, s.getTokenData(tokenInfo))
+	s.successResponse(c, s.getTokenData(tokenInfo))
 }
 
 // GetUsersRequest gets all the users
 func (s *Server) GetUsersRequest(c *gin.Context) {
 	users, err := usermanager.GetAllUsers(s.userStore)
 	if err != nil {
-		s.redirectError(c, err)
+		s.errorResponse(c, err)
 		return
 	}
-	s.redirect(c, users)
+	s.successResponse(c, users)
 }
 
 //GetUserByUID gets a particular user
 func (s *Server) GetUserByUID(c *gin.Context, userID string) {
 	storedUser, err := usermanager.GetUserByUID(s.userStore, userID)
 	if err != nil {
-		s.redirectError(c, err)
+		s.errorResponse(c, err)
 		return
 	}
-	s.redirect(c, storedUser.GetPublicInfo())
+	s.successResponse(c, storedUser.GetPublicInfo())
 }
 
 //GetUserByUserName gets a particular user
 func (s *Server) GetUserByUserName(c *gin.Context, userID string) {
 	storedUser, err := usermanager.GetUserByUserName(s.userStore, userID)
 	if err != nil {
-		s.redirectError(c, err)
+		s.errorResponse(c, err)
 		return
 	}
-	s.redirect(c, storedUser.GetPublicInfo())
+	s.successResponse(c, storedUser.GetPublicInfo())
 }
 
 // SendVerificationLink sends the verification link in the desired email
 func (s *Server) SendVerificationLink(c *gin.Context, unverifiedEmail string) {
 	jwtUser, exists := c.Get(types.JWTUserCredentialsKey)
 	if !exists {
-		s.redirectError(c, errors.ErrInvalidAccessToken)
+		s.errorResponse(c, errors.ErrInvalidAccessToken)
 		return
 	}
 	jwtUserCredentials := jwtUser.(*models.UserCredentials)
@@ -365,24 +365,24 @@ func (s *Server) SendVerificationLink(c *gin.Context, unverifiedEmail string) {
 	jwtUserCredentials.UnverifiedEmail = unverifiedEmail
 	updatedUserInfo, err := usermanager.UpdateUserDetails(s.userStore, jwtUserCredentials)
 	if err != nil {
-		s.redirectError(c, err)
+		s.errorResponse(c, err)
 		return
 	}
 
 	err = emailmanager.SendVerificationEmail(s.accessGenerate, updatedUserInfo)
 	if err != nil {
-		s.redirectError(c, err)
+		s.errorResponse(c, err)
 		return
 	}
 
-	s.redirect(c, jwtUserCredentials.GetPublicInfo())
+	s.successResponse(c, jwtUserCredentials.GetPublicInfo())
 }
 
 // VerifyEmail marks a user email as verified
 func (s *Server) VerifyEmail(c *gin.Context, redirectURL string) {
 	jwtUser, exists := c.Get(types.JWTUserCredentialsKey)
 	if !exists {
-		s.redirectError(c, errors.ErrInvalidAccessToken)
+		s.errorResponse(c, errors.ErrInvalidAccessToken)
 		// Redirecting user to UI if the user is not authorized
 		c.Redirect(http.StatusPermanentRedirect, redirectURL)
 		return
@@ -390,11 +390,9 @@ func (s *Server) VerifyEmail(c *gin.Context, redirectURL string) {
 	jwtUserCredentials := jwtUser.(*models.UserCredentials)
 
 	if jwtUserCredentials.UnverifiedEmail != "" {
-		// tmp := jwtUserCredentials.UnverifiedEmail
 		jwtUserCredentials.Email = jwtUserCredentials.UnverifiedEmail
 		jwtUserCredentials.UnverifiedEmail = ""
 		if jwtUserCredentials.Kind == models.LocalAuth {
-			// jwtUserCredentials.UserName = new(string)
 			jwtUserCredentials.UserName = jwtUserCredentials.Email
 		}
 	} else {
@@ -409,7 +407,7 @@ func (s *Server) VerifyEmail(c *gin.Context, redirectURL string) {
 
 	_, err := usermanager.UpdateUserDetails(s.userStore, jwtUserCredentials)
 	if err != nil {
-		s.redirectError(c, err)
+		s.errorResponse(c, err)
 		// Redirecting user to UI if updating the database fails
 		c.Redirect(http.StatusPermanentRedirect, redirectURL)
 	}
