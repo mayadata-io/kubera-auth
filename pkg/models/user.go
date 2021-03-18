@@ -19,24 +19,24 @@ func init() {
 
 //UserCredentials contains the user information
 type UserCredentials struct {
-	ID              bson.ObjectId   `bson:"_id,omitempty"`
-	UID             string          `bson:"uid,omitempty"`
-	UserName        string          `bson:"username,omitempty"`
-	Password        string          `bson:"password,omitempty"`
-	Email           string          `bson:"email,omitempty"`
-	UnverifiedEmail string          `bson:"unverified_email,omitempty"`
-	Company         string          `bson:"company,omitempty"`
-	CompanyRole     string          `bson:"company_role,omitempty"`
-	Name            string          `bson:"name,omitempty"`
-	Kind            AuthType        `bson:"kind,omitempty"`
-	Role            Role            `bson:"role,omitempty"`
-	LoggedIn        bool            `bson:"logged_in,omitempty"`
-	SocialAuthID    *int64          `bson:"social_auth_id,omitempty"`
-	CreatedAt       *time.Time      `bson:"created_at,omitempty"`
-	UpdatedAt       *time.Time      `bson:"updated_at,omitempty"`
-	RemovedAt       *time.Time      `bson:"removed_at,omitempty"`
-	State           State           `bson:"state,omitempty"`
-	OnBoardingState OnBoardingState `bson:"onboarding_state,omitempty"`
+	ID              bson.ObjectId   `bson:"_id,omitempty" json:"_id"`
+	UID             string          `bson:"uid,omitempty" json:"uid"`
+	UserName        string          `bson:"username,omitempty" json:"username"`
+	Password        string          `bson:"password,omitempty" json: "password"`
+	Email           string          `bson:"email,omitempty" json:"email"`
+	UnverifiedEmail string          `bson:"unverified_email,omitempty" json:"unverified_email"`
+	Company         string          `bson:"company,omitempty" json:"company"`
+	CompanyRole     string          `bson:"company_role,omitempty" json:"company_role"`
+	Name            string          `bson:"name,omitempty" json:"name"`
+	Kind            AuthType        `bson:"kind,omitempty" json:"kind"`
+	Role            Role            `bson:"role,omitempty" json:"role"`
+	LoggedIn        bool            `bson:"logged_in,omitempty" json:"logged_in"`
+	SocialAuthID    *int64          `bson:"social_auth_id,omitempty" json:"social_auth_id"`
+	CreatedAt       *time.Time      `bson:"created_at,omitempty" json:"created_at"`
+	UpdatedAt       *time.Time      `bson:"updated_at,omitempty" json:"updated_at"`
+	RemovedAt       *time.Time      `bson:"removed_at,omitempty" json:"removed_at"`
+	State           State           `bson:"state,omitempty" json:"state"`
+	OnBoardingState OnBoardingState `bson:"onboarding_state,omitempty" json:"onboarding_state"`
 }
 
 //AuthType determines the type of authentication opted by the user for login
@@ -92,19 +92,19 @@ type PublicUserInfo struct {
 	UID             string          `json:"uid"`
 	UserName        string          `json:"username"`
 	Email           string          `json:"email"`
-	UnverifiedEmail string          `json:"unverified_email,omitempty"`
-	Company         string          `json:"company,omitempty"`
-	CompanyRole     string          `json:"company_role,omitempty"`
+	UnverifiedEmail string          `json:"unverified_email"`
+	Company         string          `json:"company"`
+	CompanyRole     string          `json:"company_role"`
 	Name            string          `json:"name"`
 	Kind            AuthType        `json:"kind"`
 	Role            Role            `json:"role"`
 	LoggedIn        bool            `json:"logged_in"`
-	SocialAuthID    *int64          `json:"social_auth_id,omitempty"`
+	SocialAuthID    *int64          `json:"social_auth_id"`
 	CreatedAt       *time.Time      `json:"created_at"`
 	UpdatedAt       *time.Time      `json:"updated_at"`
 	RemovedAt       *time.Time      `json:"removed_at"`
 	State           State           `json:"state"`
-	OnBoardingState OnBoardingState `json:"onboarding_state,omitempty"`
+	OnBoardingState OnBoardingState `json:"onboarding_state"`
 }
 
 //State is the current state of the database entry of the user
