@@ -113,11 +113,11 @@ type PublicUserInfo struct {
 type State string
 
 const (
-	//StateCreated means admin has created the user but the user has still not logged in
+	// StateCreated means admin has created the user but the user has still not logged in
 	StateCreated State = "created"
-	//StateActive means user has logged in successfully
+	// StateActive means user has logged in successfully
 	StateActive State = "active"
-	//StateRemoved means user has been deleted
+	// StateRemoved means user has been deleted
 	// golint: unused
 	StateRemoved State = "removed"
 )
