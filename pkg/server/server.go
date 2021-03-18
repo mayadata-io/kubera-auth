@@ -56,7 +56,7 @@ func (s *Server) MustUserStorage(stor *store.UserStore, err error) {
 		panic(err)
 	}
 	s.userStore = stor
-	_, err = usermanager.CreateUser(stor, models.DefaultUser)
+	_, err = usermanager.CreateUser(stor, models.DefaultUser, false)
 	if err != nil {
 		log.Infoln("Unable to create default user with error:", err)
 	}
@@ -285,7 +285,7 @@ func (s *Server) CreateRequest(c *gin.Context, user *models.UserCredentials) {
 	var createdUserInfo *models.PublicUserInfo
 	var err error
 	if jwtUserCredentials.Role == models.RoleAdmin {
-		createdUserInfo, err = usermanager.CreateUser(s.userStore, user)
+		createdUserInfo, err = usermanager.CreateUser(s.userStore, user, false)
 		if err != nil {
 			s.errorResponse(c, err)
 			return
@@ -303,7 +303,7 @@ func (s *Server) SelfSignupUser(c *gin.Context, user *models.UserCredentials) {
 		return
 	}
 
-	createdUserInfo, err := usermanager.CreateUser(s.userStore, user)
+	createdUserInfo, err := usermanager.CreateUser(s.userStore, user, true)
 	if err != nil {
 		s.errorResponse(c, err)
 		return
