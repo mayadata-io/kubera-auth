@@ -41,20 +41,25 @@ func getGoogleUser(c *gin.Context, token *oauth2.Token) (*models.UserCredentials
 	// use oauth2.ReuseTokenSource when access_type is set to offline, refreshing every hour
 	ts := oauth2.StaticTokenSource(token)
 	tc := oauth2.NewClient(ctx, ts)
-	resp, _ := tc.Get(userInfo)
+	resp, err := tc.Get(userInfo)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
 	var gUser account
 	if resp.StatusCode == http.StatusOK {
 		_ = json.NewDecoder(resp.Body).Decode(&gUser)
 	}
 	user := models.UserCredentials{
-		Name:         gUser.Name,
-		Kind:         models.GoogleAuth,
-		Role:         models.RoleUser,
-		Email:        gUser.Email,
-		State:        models.StateActive,
-		SocialAuthID: gUser.ID,
-		LoggedIn:     true,
-		Photo:        gUser.Picture,
+		Name:            gUser.Name,
+		Kind:            models.GoogleAuth,
+		Role:            models.RoleUser,
+		Email:           gUser.Email,
+		State:           models.StateActive,
+		SocialAuthID:    gUser.ID,
+		LoggedIn:        true,
+		Photo:           gUser.Picture,
+		OnBoardingState: models.BoardingStateEmailVerified,
 	}
 	return &user, nil
 }

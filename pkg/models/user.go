@@ -106,6 +106,7 @@ type PublicUserInfo struct {
 	SocialAuthID    string          `json:"social_auth_id,omitempty"`
 	State           State           `json:"state"`
 	OnBoardingState OnBoardingState `json:"onboarding_state"`
+	Photo           string          `json:"pictureUrl,omitempty"`
 }
 
 //State is the current state of the database entry of the user
@@ -140,5 +141,6 @@ func (u *UserCredentials) GetPublicInfo() *PublicUserInfo {
 		RemovedAt:       u.RemovedAt,
 		State:           u.State,
 		OnBoardingState: u.OnBoardingState,
+		Photo:           u.Photo,
 	}
 }

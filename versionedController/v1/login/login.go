@@ -6,10 +6,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 	log "github.com/golang/glog"
-
 	"github.com/mayadata-io/kubera-auth/pkg/models"
 	"github.com/mayadata-io/kubera-auth/pkg/types"
 	controller "github.com/mayadata-io/kubera-auth/versionedController/v1"
+	"golang.org/x/oauth2"
 )
 
 //LoginController is the type the request in which the request will be parsed
@@ -51,7 +51,7 @@ func (login *LoginController) Post(c *gin.Context) {
 	controller.Server.LocalLoginRequest(c, loginModel.Username, loginModel.Password)
 }
 
-// Get will be triggered on GET request on the same path as Login alogn with a "auth_type" parameter
+// Get will be triggered on GET request on the same path as Login along with a "auth_type" parameter
 // so as to identify the type of login user is up to. This has to be triggered through a href request
 // so that the user is able to be redirected to provider page for login.
 // Javascript Get Request can block the redirection of user
@@ -69,7 +69,8 @@ func (login *LoginController) Get(c *gin.Context) {
 		}
 	case models.GoogleAuth:
 		if !controller.Server.Config.DisableGoogleAuth {
-			googleURL := controller.Server.GoogleConfig.AuthCodeURL(types.GoogleState)
+			googleURL := controller.Server.GoogleConfig.AuthCodeURL(types.GoogleState,
+				oauth2.SetAuthURLParam("include_granted_scopes", "true"), oauth2.AccessTypeOnline)
 			log.Info(googleURL)
 			c.Redirect(http.StatusFound, googleURL)
 		} else {

@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/gin-gonic/gin"
+	log "github.com/golang/glog"
 	"golang.org/x/oauth2"
 )
 
@@ -13,5 +14,7 @@ func (config SocialAuthConfig) GetToken(c *gin.Context) (*oauth2.Token, error) {
 	if code == "" {
 		return nil, errors.New("Code not found")
 	}
+	log.Infof("%+v", c)
+	log.Info(c.Request.URL.String())
 	return config.Exchange(c.Request.Context(), code)
 }

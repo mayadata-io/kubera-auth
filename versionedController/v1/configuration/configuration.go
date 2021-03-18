@@ -1,21 +1,19 @@
 package configuration
 
 import (
-	"github.com/imdario/mergo"
-	"github.com/mayadata-io/kubera-auth/pkg/k8s"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"net/http"
 	"strconv"
-
-	// "strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 	log "github.com/golang/glog"
+	"github.com/imdario/mergo"
 	"github.com/mayadata-io/kubera-auth/pkg/errors"
+	"github.com/mayadata-io/kubera-auth/pkg/k8s"
 	"github.com/mayadata-io/kubera-auth/pkg/models"
 	"github.com/mayadata-io/kubera-auth/pkg/types"
 	controller "github.com/mayadata-io/kubera-auth/versionedController/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type Controller struct {
@@ -71,7 +69,6 @@ func (configurationController *Controller) Put(c *gin.Context) {
 	}
 	// 4. Persist the configuration for further usage
 	configurationController.updateToK8s(c, configModel)
-	c.String(http.StatusOK, "Configured successfully")
 }
 
 // updateToK8s updates the value of Oauth secrets in secrets & configmaps
@@ -105,9 +102,20 @@ func (configurationController *Controller) updateToK8s(c *gin.Context, requestMo
 		EnableGoogle:       &googEnable,
 	}
 	// update the configmap model with data from the request-model
-	mergo.Merge(&cfgMapModel, &requestModel)
+	if err := mergo.Merge(&cfgMapModel, &requestModel); err != nil {
+		log.Error("Error merging to cfgMapModelg", err)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "Unable to update configs",
+		})
+	}
+
 	// merge the request data
-	mergo.Merge(&cm.Data, &cfgMapModel)
+	if err := mergo.Merge(&cm.Data, &cfgMapModel); err != nil {
+		log.Error("Error merging to cfgMap", err)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "Unable to update config",
+		})
+	}
 	_, err = k8s.ClientSet.CoreV1().ConfigMaps(types.DefaultNamespace).Update(c.Request.Context(), cm, metav1.UpdateOptions{})
 	if err != nil {
 		log.Errorln("Error updating configmap ", err)
