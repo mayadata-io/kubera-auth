@@ -18,6 +18,8 @@ type EmailController struct {
 //Model ...
 type Model struct {
 	UnverifiedEmail string `json:"unverified_email,omitempty"`
+	Resend          bool   `json:"resend,omitempty"`
+	Restore         bool   `json:"restore,omitempty"`
 }
 
 // New creates a new User
@@ -39,7 +41,11 @@ func (emailController *EmailController) Post(c *gin.Context) {
 		return
 	}
 
-	controller.Server.SendVerificationLink(c, emailModel.UnverifiedEmail)
+	if emailModel.Restore {
+		controller.Server.RestoreEmail(c)
+	} else {
+		controller.Server.SendVerificationLink(c, emailModel.Resend, emailModel.UnverifiedEmail)
+	}
 }
 
 //Get verifies the email by a link
