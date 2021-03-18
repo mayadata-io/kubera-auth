@@ -11,7 +11,12 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// CreateUser get the user information
+// CreateUser builds a user entry from the provided details about the user
+// such as username, password etc. for insertion. These values are embedded
+// inside the usercredentials struct.
+// `isSignup` is a bool value used to detect whether this user creation is being
+// done via a local auth signup form or through an admin and will accordingly set
+// the values for the user to be created.
 func CreateUser(userStore *store.UserStore, user *models.UserCredentials, isSignup bool) (*models.PublicUserInfo, error) {
 	exists, err := IsUserExists(userStore, user)
 	if err != nil {
@@ -47,7 +52,7 @@ func CreateUser(userStore *store.UserStore, user *models.UserCredentials, isSign
 			UnverifiedEmail: user.UnverifiedEmail,
 			Kind:            models.LocalAuth,
 			State:           models.StateCreated,
-			OnBoardingState: models.BoardingStateSignup,
+			OnBoardingState: models.BoardingStateUnverifiedAndComplete,
 		}
 
 		if user.Role != "" {
