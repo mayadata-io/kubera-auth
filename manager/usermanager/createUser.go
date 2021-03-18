@@ -12,7 +12,7 @@ import (
 )
 
 // CreateUser get the user information
-func CreateUser(userStore *store.UserStore, user *models.UserCredentials) (*models.PublicUserInfo, error) {
+func CreateUser(userStore *store.UserStore, user *models.UserCredentials, isSignup bool) (*models.PublicUserInfo, error) {
 	exists, err := IsUserExists(userStore, user)
 	if err != nil {
 		return nil, err
@@ -26,10 +26,7 @@ func CreateUser(userStore *store.UserStore, user *models.UserCredentials) (*mode
 	}
 
 	var newUser *models.UserCredentials
-	if user.Role == models.RoleAdmin {
-		newUser = user
-		newUser.Password = string(hashedPassword)
-	} else {
+	if isSignup {
 		newUser = &models.UserCredentials{
 			UID:             uuid.Must(uuid.NewRandom()).String(),
 			UserName:        user.UserName,
@@ -38,7 +35,25 @@ func CreateUser(userStore *store.UserStore, user *models.UserCredentials) (*mode
 			UnverifiedEmail: user.UserName,
 			Kind:            models.LocalAuth,
 			Role:            models.RoleUser,
+			State:           models.StateCreated,
 			OnBoardingState: models.BoardingStateSignup,
+		}
+	} else {
+		newUser = &models.UserCredentials{
+			UID:             uuid.Must(uuid.NewRandom()).String(),
+			UserName:        user.UserName,
+			Password:        string(hashedPassword),
+			Name:            user.Name,
+			UnverifiedEmail: user.UnverifiedEmail,
+			Kind:            models.LocalAuth,
+			State:           models.StateCreated,
+			OnBoardingState: models.BoardingStateSignup,
+		}
+
+		if user.Role != "" {
+			newUser.Role = user.Role
+		} else {
+			newUser.Role = models.RoleUser
 		}
 	}
 

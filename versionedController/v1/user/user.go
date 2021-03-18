@@ -64,9 +64,6 @@ func (user *UserController) Post(c *gin.Context) {
 		return
 	}
 
-	userModel.Kind = models.LocalAuth
-	userModel.Role = models.RoleUser
-	userModel.State = models.StateCreated
 	controller.Server.CreateRequest(c, userModel)
 }
 
