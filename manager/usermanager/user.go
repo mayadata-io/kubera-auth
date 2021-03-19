@@ -53,8 +53,9 @@ func generateUserName(name string) string {
 	}
 	if choose < 5 {
 		username = fname + appendString
+	} else {
+		username = lname + appendString
 	}
-	username = lname + appendString
 
 	return username
 }

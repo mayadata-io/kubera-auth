@@ -37,8 +37,8 @@ func NewConfig() *Config {
 	}
 
 	if disableGoogleAuth == "" {
-		// Will be enabled by default
-		config.DisableGoogleAuth = false
+		// Will be disabled by default
+		config.DisableGoogleAuth = true
 	} else {
 		config.DisableGoogleAuth, err = strconv.ParseBool(disableGoogleAuth)
 		if err != nil {
