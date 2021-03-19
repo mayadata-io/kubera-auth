@@ -354,7 +354,7 @@ func (s *Server) GetUserByUserName(c *gin.Context, userID string) {
 }
 
 // SendVerificationLink sends the verification link in the desired email
-func (s *Server) SendVerificationLink(c *gin.Context, unverifiedEmail string) {
+func (s *Server) SendVerificationLink(c *gin.Context, resend bool, unverifiedEmail string) {
 	jwtUser, exists := c.Get(types.JWTUserCredentialsKey)
 	if !exists {
 		s.errorResponse(c, errors.ErrInvalidAccessToken)
@@ -362,20 +362,26 @@ func (s *Server) SendVerificationLink(c *gin.Context, unverifiedEmail string) {
 	}
 	jwtUserCredentials := jwtUser.(*models.UserCredentials)
 
-	jwtUserCredentials.UnverifiedEmail = unverifiedEmail
-	updatedUserInfo, err := usermanager.UpdateUserDetails(s.userStore, jwtUserCredentials)
+	var userInfo *models.PublicUserInfo
+	var err error
+	if resend {
+		userInfo = jwtUserCredentials.GetPublicInfo()
+	} else {
+		jwtUserCredentials.UnverifiedEmail = unverifiedEmail
+		userInfo, err = usermanager.UpdateUserDetails(s.userStore, jwtUserCredentials)
+		if err != nil {
+			s.errorResponse(c, err)
+			return
+		}
+	}
+
+	err = emailmanager.SendVerificationEmail(s.accessGenerate, userInfo)
 	if err != nil {
 		s.errorResponse(c, err)
 		return
 	}
 
-	err = emailmanager.SendVerificationEmail(s.accessGenerate, updatedUserInfo)
-	if err != nil {
-		s.errorResponse(c, err)
-		return
-	}
-
-	s.successResponse(c, jwtUserCredentials.GetPublicInfo())
+	s.successResponse(c, userInfo)
 }
 
 // VerifyEmail marks a user email as verified
@@ -414,4 +420,27 @@ func (s *Server) VerifyEmail(c *gin.Context, redirectURL string) {
 
 	log.Infoln("Email: ", jwtUserCredentials.Email, " is verified successfully for user uid: ", jwtUserCredentials.UID)
 	c.Redirect(http.StatusPermanentRedirect, redirectURL)
+}
+
+// RestoreEmail makes the `UnverifiedEmail` as blank.
+// A user might want to change his email and later changes his mind and
+// wants to continue with his previous email only. Since change of email in DB
+// is withhold until the user verifies his new email. So this just removes
+// his unverified email from DB and let the user continue with the verified one.
+func (s *Server) RestoreEmail(c *gin.Context) {
+	jwtUser, exists := c.Get(types.JWTUserCredentialsKey)
+	if !exists {
+		s.errorResponse(c, errors.ErrInvalidAccessToken)
+		return
+	}
+	jwtUserCredentials := jwtUser.(*models.UserCredentials)
+
+	jwtUserCredentials.UnverifiedEmail = ""
+	userInfo, err := usermanager.UpdateUserDetails(s.userStore, jwtUserCredentials)
+	if err != nil {
+		s.errorResponse(c, err)
+		return
+	}
+
+	s.successResponse(c, userInfo)
 }
