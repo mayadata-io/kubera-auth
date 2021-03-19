@@ -422,7 +422,11 @@ func (s *Server) VerifyEmail(c *gin.Context, redirectURL string) {
 	c.Redirect(http.StatusPermanentRedirect, redirectURL)
 }
 
-// RestoreEmail restores the previous email in case user does not want to verify new email
+// RestoreEmail makes the `UnverifiedEmail` as blank.
+// A user might want to change his email and later changes his mind and
+// wants to continue with his previous email only. Since change of email in DB
+// is withhold until the user verifies his new email. So this just removes
+// his unverified email from DB and let the user continue with the verified one.
 func (s *Server) RestoreEmail(c *gin.Context) {
 	jwtUser, exists := c.Get(types.JWTUserCredentialsKey)
 	if !exists {
