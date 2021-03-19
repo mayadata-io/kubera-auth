@@ -88,7 +88,7 @@ func CallbackRequest(c *gin.Context) {
 	case types.GithubState:
 		user, err = providers.GetGithubUser(c)
 		if err != nil {
-			log.Errorln("Error getting user from github", err)
+			log.Errorln("Error getting user from Github", err)
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": err.Error(),
 			})
@@ -98,12 +98,12 @@ func CallbackRequest(c *gin.Context) {
 	case types.GoogleState:
 		user, err = providers.GetGoogleUser(c)
 		if err != nil {
-			log.Errorln("Error getting user from google", err)
+			log.Errorln("Error getting user from Google", err)
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": err.Error(),
 			})
-			log.Info(urlString)
 			c.Redirect(http.StatusFound, urlString)
+			return
 		}
 	default:
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -112,7 +112,6 @@ func CallbackRequest(c *gin.Context) {
 		c.Redirect(http.StatusFound, urlString)
 		return
 	}
-
 	v1.Server.SocialLoginRequest(c, user, urlString)
 }
 

@@ -64,16 +64,16 @@ func getGoogleUser(c *gin.Context, token *oauth2.Token) (*models.UserCredentials
 	return &user, nil
 }
 
-// GetGoogleUser gives the details of the user fetched as from github
+// GetGoogleUser gives the details of the user fetched as from google
 func GetGoogleUser(c *gin.Context) (*models.UserCredentials, error) {
 	token, err := controller.Server.GoogleConfig.GetToken(c)
 	if err != nil {
-		log.Errorln("Error getting token from google", err)
+		log.Errorln("Error getting token from Google", err)
 		return nil, err
 	}
 	user, err := getGoogleUser(c, token)
 	if err != nil {
-		log.Errorln("Error getting user from google", err)
+		log.Errorln("Error getting user from Google", err)
 		return nil, err
 	}
 	return user, nil

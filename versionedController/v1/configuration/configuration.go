@@ -85,10 +85,10 @@ func (configurationController *Controller) updateToK8s(c *gin.Context, requestMo
 			"message": "Unable to persist config change",
 		})
 	}
-	githubEnable, _ := strconv.ParseBool(cm.Data[types.DISABLE_GITHUBAUTH])
-	githubEnable = !githubEnable
-	googEnable, _ := strconv.ParseBool(cm.Data[types.DISABLE_GOOGLEAUTH])
-	googEnable = !googEnable
+	githubDisable, _ := strconv.ParseBool(cm.Data[types.DISABLE_GITHUBAUTH])
+	githubEnable := !githubDisable
+	googDisable, _ := strconv.ParseBool(cm.Data[types.DISABLE_GOOGLEAUTH])
+	googEnable := !googDisable
 	githubClientID := cm.Data[types.GITHUB_CLIENT_ID]
 	githubClientSecret := cm.Data[types.GITHUB_CLIENT_SECRET]
 	googClientID := cm.Data[types.GOOGLE_CLIENT_ID]
