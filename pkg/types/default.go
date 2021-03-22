@@ -18,6 +18,7 @@ const (
 	DefaultLocalAuthCollection         string        = "usercredentials"
 	GithubState                        string        = "github"
 	JWTUserCredentialsKey              string        = "userCredentials"
+	GoogleState                        string        = "google"
 	TemplatePath                       string        = "./templates"
 	AuthHeaderKey                      string        = "Authorization"
 	AuthHeaderPrefix                   string        = "Bearer "

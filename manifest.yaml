@@ -24,6 +24,11 @@ data:
   PORTAL_URL: "https://kubera-core-ui:9091"
   DISABLE_LOCALAUTH: "false"
   DISABLE_GITHUBAUTH: "true"
+  GOOGLE_CLIENT_ID: "apples"
+  GOOGLE_CLIENT_SECRET: "oranges"
+  GOOGLE_REDIRECT_URL: "https://example.com/gcallback"
+  GITHUB_CLIENT_ID: "abc"
+  GITHUB_CLIENT_SECRET: "def"
   EMAIL_USERNAME: "test@mayadata.io"
   EMAIL_PASSWORD: "test@123"
 ---

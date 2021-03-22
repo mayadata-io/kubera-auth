@@ -21,7 +21,7 @@ import (
 )
 
 const (
-	githubLoginRoute = "/oauth"
+	oauthLoginRoute  = "/oauth"
 	healthCheckRoute = "/health"
 )
 
@@ -65,7 +65,7 @@ func New() *gin.Engine {
 	routerV1 := router.Group("/v1")
 	routerV1.Use(Middleware)
 	{
-		routerV1.GET(githubLoginRoute, CallbackRequest)
+		routerV1.GET(oauthLoginRoute, CallbackRequest)
 		routerV1.GET(healthCheckRoute, HealthCheck)
 	}
 	registerControllers(routerV1)
@@ -78,36 +78,40 @@ func HealthCheck(c *gin.Context) {
 	c.Writer.WriteHeader(http.StatusOK)
 }
 
-//CallbackRequest will be triggered by the provider automatically after the login
+// CallbackRequest will be triggered by the provider automatically after the login
 func CallbackRequest(c *gin.Context) {
 	var user *models.UserCredentials
 	var err error
 	urlString := types.PortalURL + "/login?"
 	state := c.Query("state")
-
 	switch state {
 	case types.GithubState:
-		{
-			user, err = providers.GetGithubUser(c)
-			if err != nil {
-				log.Errorln("Error getting user from github", err)
-				c.JSON(http.StatusInternalServerError, gin.H{
-					"error": err.Error(),
-				})
-				c.Redirect(http.StatusFound, urlString)
-				return
-			}
-		}
-	default:
-		{
+		user, err = providers.GetGithubUser(c)
+		if err != nil {
+			log.Errorln("Error getting user from Github", err)
 			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": "state Invalid",
+				"error": err.Error(),
 			})
 			c.Redirect(http.StatusFound, urlString)
 			return
 		}
+	case types.GoogleState:
+		user, err = providers.GetGoogleUser(c)
+		if err != nil {
+			log.Errorln("Error getting user from Google", err)
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": err.Error(),
+			})
+			c.Redirect(http.StatusFound, urlString)
+			return
+		}
+	default:
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Invalid state or authentication provider",
+		})
+		c.Redirect(http.StatusFound, urlString)
+		return
 	}
-
 	v1.Server.SocialLoginRequest(c, user, urlString)
 }
 

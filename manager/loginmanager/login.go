@@ -35,7 +35,7 @@ func LocalLoginUser(userStore *store.UserStore, accessGenerate *generates.JWTAcc
 
 // SocialLoginUser get the user information
 func SocialLoginUser(userStore *store.UserStore, accessGenerate *generates.JWTAccessGenerate, user *models.UserCredentials) (*models.Token, error) {
-	query := bson.M{"social_auth_id": user.SocialAuthID}
+	query := bson.M{"social_auth_id": user.SocialAuthID, "kind": user.Kind}
 	storedUser, err := userStore.GetUser(query)
 	if err != nil && err == mgo.ErrNotFound {
 		// If user does not exists
