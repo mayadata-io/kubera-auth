@@ -107,7 +107,7 @@ func CallbackRequest(c *gin.Context) {
 		}
 	default:
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "state Invalid",
+			"error": "Invalid state or authentication provider",
 		})
 		c.Redirect(http.StatusFound, urlString)
 		return
