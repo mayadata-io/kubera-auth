@@ -38,6 +38,7 @@ func getGitHubUser(c *gin.Context, token *oauth2.Token) (*models.UserCredentials
 		LoggedIn:     true,
 		SocialAuthID: strconv.FormatInt(*githubUser.ID, 10),
 		CreatedAt:    &currTime,
+		Photo:        githubUser.GetAvatarURL(),
 	}
 
 	for _, githubUserEmail := range githubUserEmails {

@@ -48,8 +48,11 @@ func SocialLoginUser(userStore *store.UserStore, accessGenerate *generates.JWTAc
 		// Error other than user exists
 		return nil, err
 	} else {
-		// If user exists
+		// If user exists, set loggedIn to true & update photo
 		storedUser.LoggedIn = true
+		if user.Photo != "" {
+			storedUser.Photo = user.Photo
+		}
 		err = userStore.UpdateUser(storedUser)
 		if err != nil {
 			return nil, err
