@@ -71,7 +71,6 @@ func (login *LoginController) Get(c *gin.Context) {
 		if !controller.Server.Config.DisableGoogleAuth {
 			googleURL := controller.Server.GoogleConfig.AuthCodeURL(types.GoogleState,
 				oauth2.SetAuthURLParam("include_granted_scopes", "true"), oauth2.AccessTypeOnline)
-			log.Info(googleURL)
 			c.Redirect(http.StatusFound, googleURL)
 		} else {
 			c.JSON(http.StatusBadRequest, gin.H{
