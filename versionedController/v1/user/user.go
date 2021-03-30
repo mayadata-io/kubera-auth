@@ -1,6 +1,7 @@
 package user
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -25,8 +26,15 @@ func New() *UserController {
 
 // Put updates a user details
 func (user *UserController) Put(c *gin.Context) {
-	userModel := &models.UserCredentials{}
-	err := c.BindJSON(userModel)
+	type model struct {
+		UnverifiedEmail string `json:"unverified_email"`
+		Company         string `json:"company"`
+		CompanyRole     string `json:"company_role"`
+		Name            string `json:"name"`
+	}
+
+	requestModel := &model{}
+	err := c.BindJSON(requestModel)
 	if err != nil {
 		log.Error(err)
 		c.JSON(http.StatusNotAcceptable, gin.H{
@@ -35,13 +43,37 @@ func (user *UserController) Put(c *gin.Context) {
 		return
 	}
 
-	controller.Server.UpdateUserDetailsRequest(c, userModel)
+	userCredentialsModel := &models.UserCredentials{}
+
+	userBytes, err := json.Marshal(requestModel)
+	if err != nil {
+		log.Error(err)
+		c.JSON(http.StatusNotAcceptable, gin.H{
+			"message": "Unable to parse JSON",
+		})
+		return
+	}
+	err = json.Unmarshal(userBytes, userCredentialsModel)
+	if err != nil {
+		log.Error(err)
+		c.JSON(http.StatusNotAcceptable, gin.H{
+			"message": "Unable to parse JSON",
+		})
+		return
+	}
+
+	controller.Server.UpdateUserDetailsRequest(c, userCredentialsModel)
 }
 
 //Patch updates the password of concerned user given that request should be sent by admin
 func (user *UserController) Patch(c *gin.Context) {
-	userModel := &models.UserCredentials{}
-	err := c.BindJSON(userModel)
+	type model struct {
+		UserName string `json:"username"`
+		Password string `json:"password"`
+	}
+
+	requestModel := &model{}
+	err := c.BindJSON(requestModel)
 	if err != nil {
 		log.Error(err)
 		c.JSON(http.StatusNotAcceptable, gin.H{
@@ -49,13 +81,22 @@ func (user *UserController) Patch(c *gin.Context) {
 		})
 		return
 	}
-	controller.Server.ResetPasswordRequest(c, userModel.Password, userModel.UserName)
+	controller.Server.ResetPasswordRequest(c, requestModel.Password, requestModel.UserName)
 }
 
 //Post creates a user, request should be sent by admin
 func (user *UserController) Post(c *gin.Context) {
-	userModel := &models.UserCredentials{}
-	err := c.BindJSON(userModel)
+	type model struct {
+		UnverifiedEmail string `json:"unverified_email"`
+		Company         string `json:"company"`
+		CompanyRole     string `json:"company_role"`
+		Name            string `json:"name"`
+		UserName        string `json:"username"`
+		Password        string `json:"password"`
+	}
+
+	requestModel := &model{}
+	err := c.BindJSON(requestModel)
 	if err != nil {
 		log.Error(err)
 		c.JSON(http.StatusNotAcceptable, gin.H{
@@ -64,7 +105,26 @@ func (user *UserController) Post(c *gin.Context) {
 		return
 	}
 
-	controller.Server.CreateRequest(c, userModel)
+	userCredentialsModel := &models.UserCredentials{}
+
+	userBytes, err := json.Marshal(requestModel)
+	if err != nil {
+		log.Error(err)
+		c.JSON(http.StatusNotAcceptable, gin.H{
+			"message": "Unable to parse JSON",
+		})
+		return
+	}
+	err = json.Unmarshal(userBytes, userCredentialsModel)
+	if err != nil {
+		log.Error(err)
+		c.JSON(http.StatusNotAcceptable, gin.H{
+			"message": "Unable to parse JSON",
+		})
+		return
+	}
+
+	controller.Server.CreateRequest(c, userCredentialsModel)
 }
 
 // Get will respond with a particular user or all users
