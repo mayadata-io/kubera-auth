@@ -16,7 +16,6 @@ type PasswordController struct {
 
 //Model ...
 type Model struct {
-	OldPassword string `json:"old_password,omitempty"`
 	NewPassword string `json:"new_password,omitempty"`
 }
 
@@ -38,7 +37,7 @@ func (password *PasswordController) Put(c *gin.Context) {
 		})
 		return
 	}
-	controller.Server.UpdatePasswordRequest(c, passwordModel.OldPassword, passwordModel.NewPassword)
+	controller.Server.UpdatePasswordRequest(c, passwordModel.NewPassword)
 }
 
 // Register will rsgister this controller to the specified router

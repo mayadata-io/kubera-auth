@@ -200,7 +200,7 @@ func (s *Server) GetUserFromToken(token string) (*models.UserCredentials, error)
 }
 
 // UpdatePasswordRequest validates the request
-func (s *Server) UpdatePasswordRequest(c *gin.Context, oldPassword, newPassword string) {
+func (s *Server) UpdatePasswordRequest(c *gin.Context, newPassword string) {
 	jwtUser, exists := c.Get(types.JWTUserCredentialsKey)
 	if !exists {
 		s.errorResponse(c, errors.ErrInvalidAccessToken)
@@ -208,12 +208,12 @@ func (s *Server) UpdatePasswordRequest(c *gin.Context, oldPassword, newPassword 
 	}
 	jwtUserCredentials := jwtUser.(*models.UserCredentials)
 
-	if oldPassword == "" || newPassword == "" {
+	if newPassword == "" {
 		c.JSON(http.StatusBadRequest, errors.ErrInvalidRequest)
 		return
 	}
 
-	updatedUserInfo, err := usermanager.UpdatePassword(s.userStore, false, oldPassword, newPassword, jwtUserCredentials.UID)
+	updatedUserInfo, err := usermanager.UpdatePassword(s.userStore, newPassword, jwtUserCredentials.UserName)
 	if err != nil {
 		s.errorResponse(c, err)
 		return
@@ -238,11 +238,14 @@ func (s *Server) ResetPasswordRequest(c *gin.Context, newPassword, userName stri
 	var updatedUserInfo *models.PublicUserInfo
 	var err error
 	if jwtUserCredentials.Role == models.RoleAdmin {
-		updatedUserInfo, err = usermanager.UpdatePassword(s.userStore, true, "", newPassword, userName)
+		updatedUserInfo, err = usermanager.UpdatePassword(s.userStore, newPassword, userName)
 		if err != nil {
 			s.errorResponse(c, err)
 			return
 		}
+	} else {
+		s.errorResponse(c, errors.ErrInvalidUser)
+		return
 	}
 	s.successResponse(c, updatedUserInfo)
 }
