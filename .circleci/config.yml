@@ -16,7 +16,6 @@ jobs:
       - go/load-cache
       - go/mod-download
       - go/save-cache
-      - run: bash <(go build)
       - run: make coverage # Run tests with coverage result
       - run: bash <(wget -qO - https://codecov.io/bash) # Push result to CodeCov
         # Install GolangCI-Lint, this might be better off in a different stage
@@ -31,12 +30,13 @@ jobs:
       - run: docker login -u $DNAME -p $DPASS
       # https://circleci.com/docs/2.0/building-docker-images/
       - setup_remote_docker
-      # TODO: Verify if non docker multi-stage builds are faster and optimize
+      # Build the binary in the go container
+      - run: CGO_ENABLED=0 go build -o ./server -v ./src
       - run:
         # The image tagging logic goes here, the env variables aren't exported to further steps
           name: "Build a docker image"
           command: |
-            [[ $CIRCLECI_BRANCH == TechPreview* ]] && export IMGTAG=$CIRCLECI_BRANCH || export IMGTAG="master-ci"
+            [[ $CIRCLE_BRANCH == TechPreview* ]] && export IMGTAG=$CIRCLE_BRANCH || export IMGTAG="master-ci"
             make build
             docker push mayadataio/kubera-auth:$IMGTAG
 workflows:
@@ -55,6 +55,7 @@ workflows:
                 - master
                 - /TechPreview.*/
                 - /^v.*/
+                - faster_ci
             tags:
               only:
               - /.*/
