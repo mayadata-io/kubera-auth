@@ -17,8 +17,8 @@ type TokenType string
 var (
 	// TokenLogin will be used for login purposes
 	TokenLogin TokenType = "Login"
-	// TokenVerify will be used for verifying the email
-	TokenVerify TokenType = "Verify"
+	// TokenEmail will be used for verifying the email
+	TokenEmail TokenType = "Email"
 )
 
 // Token token model
