@@ -314,7 +314,7 @@ func (s *Server) SelfSignupUser(c *gin.Context, user *models.UserCredentials) {
 		return
 	}
 
-	err = emailmanager.SendVerificationEmail(s.accessGenerate, createdUserInfo, emailmanager.VerificationEmail)
+	err = emailmanager.SendEmail(s.accessGenerate, createdUserInfo, emailmanager.VerificationEmail)
 	if err != nil {
 		s.errorResponse(c, err)
 		return
@@ -380,7 +380,7 @@ func (s *Server) SendVerificationLink(c *gin.Context, resend bool, unverifiedEma
 		}
 	}
 
-	err = emailmanager.SendVerificationEmail(s.accessGenerate, userInfo, emailmanager.VerificationEmail)
+	err = emailmanager.SendEmail(s.accessGenerate, userInfo, emailmanager.VerificationEmail)
 	if err != nil {
 		s.errorResponse(c, err)
 		return
@@ -458,13 +458,13 @@ func (s *Server) ForgotPasswordRequest(c *gin.Context, email string) {
 		return
 	}
 
-	err = emailmanager.SendVerificationEmail(s.accessGenerate, storedUser.GetPublicInfo(), emailmanager.ResetPasswordEmail)
+	err = emailmanager.SendEmail(s.accessGenerate, storedUser.GetPublicInfo(), emailmanager.ResetPasswordEmail)
 	if err != nil {
 		s.errorResponse(c, err)
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Verification email sent",
+		"message": "Password reset email sent",
 	})
 }

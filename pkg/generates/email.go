@@ -49,16 +49,10 @@ func configureEmail() (*gomail.Dialer, *gomail.Message) {
 }
 
 // GetEmailBody forms the html template body of email
-func GetEmailBody(path, userName, link, retriggerLink string) (*bytes.Buffer, error) {
-	t, err := template.ParseFiles(types.TemplatePath + path)
+func GetEmailBody(emailTemplateFilePath string, templateVar TemplateVariables) (*bytes.Buffer, error) {
+	t, err := template.ParseFiles(types.TemplatePath + emailTemplateFilePath)
 	if err != nil {
 		return nil, err
-	}
-
-	templateVar := TemplateVariables{
-		Username:      userName,
-		Link:          link,
-		RetriggerLink: retriggerLink,
 	}
 
 	buf := new(bytes.Buffer)

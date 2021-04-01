@@ -39,13 +39,13 @@ func (password *PasswordController) Put(c *gin.Context) {
 	controller.Server.UpdatePasswordRequest(c, passwordModel.NewPassword)
 }
 
-//Get sends an email for reseting the password of a user to the concerned user's email
+//Get sends an email for resetting the password of a user to the concerned user's email
 func (password *PasswordController) Get(c *gin.Context) {
 	email := c.Query("email")
 	controller.Server.ForgotPasswordRequest(c, email)
 }
 
-// Register will rsgister this controller to the specified router
+// Register will register this controller to the specified router
 func (password *PasswordController) Register(router *gin.RouterGroup) {
 	controller.RegisterController(router, password, password.routePath)
 }

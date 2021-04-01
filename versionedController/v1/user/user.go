@@ -145,7 +145,7 @@ func (user *UserController) GetByUsername(c *gin.Context) {
 	controller.Server.GetUserByUserName(c, userID)
 }
 
-// Register will rsgister this controller to the specified router
+// Register will register this controller to the specified router
 func (user *UserController) Register(router *gin.RouterGroup) {
 	controller.RegisterController(router, user, user.routePath)
 	router.GET(user.routePath+"/uid/:userID", user.GetByUID)

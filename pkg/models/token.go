@@ -17,7 +17,7 @@ type TokenType string
 var (
 	// TokenLogin will be used for login purposes
 	TokenLogin TokenType = "Login"
-	// TokenEmail will be used for verifying the email
+	// TokenEmail will be used as authenticity for the link in emails
 	TokenEmail TokenType = "Email"
 )
 

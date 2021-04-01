@@ -19,7 +19,7 @@ const (
 	ResetPasswordEmail EmailType = "Reset"
 )
 
-func SendVerificationEmail(accessGenerate *generates.JWTAccessGenerate, userInfo *models.PublicUserInfo, emailType EmailType) error {
+func SendEmail(accessGenerate *generates.JWTAccessGenerate, userInfo *models.PublicUserInfo, emailType EmailType) error {
 	tgr := &jwtmanager.TokenGenerateRequest{
 		UserInfo:       userInfo,
 		AccessTokenExp: time.Minute * types.VerificationLinkExpirationTimeUnit,
@@ -31,30 +31,40 @@ func SendVerificationEmail(accessGenerate *generates.JWTAccessGenerate, userInfo
 	}
 
 	var email string
-	// var emailType EmailType
 	var buf *bytes.Buffer
+	var subject string
 
 	switch emailType {
 	case VerificationEmail:
 		email = userInfo.UnverifiedEmail
-		link := types.PortalURL + "/api/auth/v1/email?access=" + tokenInfo.Access
-		buf, err = generates.GetEmailBody(types.VerificationEmailTemplatePath, userInfo.Name, link, "")
+		templateVar := generates.TemplateVariables{
+			Username: userInfo.Name,
+			Link: types.PortalURL + "/api/auth/v1/email?access=" + tokenInfo.Access,
+		}
+		subject = "Email Verification"
+		
+		buf, err = generates.GetEmailBody(types.VerificationEmailTemplatePath, templateVar)
 		if err != nil {
 			log.Error("Error occurred while getting email body for user: " + userInfo.UID + "error: " + err.Error())
 			return err
 		}
 	case ResetPasswordEmail:
 		email = userInfo.Email
-		link := types.PortalURL + "/change-password?access=" + tokenInfo.Access
-		retriggerLink := types.PortalURL + "/api/auth/v1/password?email=" + email
-		buf, err = generates.GetEmailBody(types.ResetPasswordEmailTemplatePath, userInfo.Name, link, retriggerLink)
+		templateVar := generates.TemplateVariables{
+			Username: userInfo.Name,
+			Link: types.PortalURL + "/api/auth/v1/email?access=" + tokenInfo.Access,
+			RetriggerLink: types.PortalURL + "/change-password?access=" + tokenInfo.Access,
+		}
+		subject = "Password Reset"
+
+		buf, err = generates.GetEmailBody(types.ResetPasswordEmailTemplatePath, templateVar)
 		if err != nil {
 			log.Error("Error occurred while getting email body for user: " + userInfo.UID + "error: " + err.Error())
 			return err
 		}
 	}
 
-	err = generates.SendEmail(email, "Email Verification", buf.String())
+	err = generates.SendEmail(email, subject, buf.String())
 	if err != nil {
 		log.Error("Error occurred while sending email for user: " + userInfo.UID + "error: " + err.Error())
 		return err
