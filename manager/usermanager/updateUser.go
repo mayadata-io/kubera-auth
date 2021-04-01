@@ -57,6 +57,10 @@ func UpdatePassword(userStore *store.UserStore, newPassword, userID string) (*mo
 	}
 	storedUser.Password = string(hashedPassword)
 
+	if storedUser.State == models.StateCreated {
+		storedUser.State = models.StateActive
+	}
+
 	err = userStore.UpdateUser(storedUser)
 	return storedUser.GetPublicInfo(), err
 }
