@@ -39,10 +39,10 @@ func SendEmail(accessGenerate *generates.JWTAccessGenerate, userInfo *models.Pub
 		email = userInfo.UnverifiedEmail
 		templateVar := generates.TemplateVariables{
 			Username: userInfo.Name,
-			Link: types.PortalURL + "/api/auth/v1/email?access=" + tokenInfo.Access,
+			Link:     types.PortalURL + "/api/auth/v1/email?access=" + tokenInfo.Access,
 		}
 		subject = "Email Verification"
-		
+
 		buf, err = generates.GetEmailBody(types.VerificationEmailTemplatePath, templateVar)
 		if err != nil {
 			log.Error("Error occurred while getting email body for user: " + userInfo.UID + "error: " + err.Error())
@@ -51,9 +51,9 @@ func SendEmail(accessGenerate *generates.JWTAccessGenerate, userInfo *models.Pub
 	case ResetPasswordEmail:
 		email = userInfo.Email
 		templateVar := generates.TemplateVariables{
-			Username: userInfo.Name,
-			Link: types.PortalURL + "/api/auth/v1/email?access=" + tokenInfo.Access,
-			RetriggerLink: types.PortalURL + "/change-password?access=" + tokenInfo.Access,
+			Username:      userInfo.Name,
+			Link:          types.PortalURL + "/change-password?access=" + tokenInfo.Access,
+			RetriggerLink: types.PortalURL + "/api/auth/v1/password?access=" + tokenInfo.Access,
 		}
 		subject = "Password Reset"
 
