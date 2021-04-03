@@ -1,6 +1,7 @@
 package emailmanager
 
 import (
+	"bytes"
 	"time"
 
 	log "github.com/golang/glog"
@@ -11,26 +12,59 @@ import (
 	"github.com/mayadata-io/kubera-auth/pkg/types"
 )
 
-func SendVerificationEmail(accessGenerate *generates.JWTAccessGenerate, userInfo *models.PublicUserInfo) error {
+type EmailType string
+
+const (
+	VerificationEmail  EmailType = "Verification"
+	ResetPasswordEmail EmailType = "Reset"
+)
+
+func SendEmail(accessGenerate *generates.JWTAccessGenerate, userInfo *models.PublicUserInfo, emailType EmailType) error {
 	tgr := &jwtmanager.TokenGenerateRequest{
 		UserInfo:       userInfo,
 		AccessTokenExp: time.Minute * types.VerificationLinkExpirationTimeUnit,
 	}
 
-	tokenInfo, err := jwtmanager.GenerateAuthToken(accessGenerate, tgr, models.TokenVerify)
+	tokenInfo, err := jwtmanager.GenerateAuthToken(accessGenerate, tgr, models.TokenEmail)
 	if err != nil {
 		return err
 	}
 
-	link := types.PortalURL + "/api/auth/v1/email?access=" + tokenInfo.Access
+	var email string
+	var buf *bytes.Buffer
+	var subject string
 
-	buf, err := generates.GetEmailBody(userInfo.Name, link)
-	if err != nil {
-		log.Error("Error occurred while getting email body for user: " + userInfo.UID + "error: " + err.Error())
-		return err
+	switch emailType {
+	case VerificationEmail:
+		email = userInfo.UnverifiedEmail
+		templateVar := generates.TemplateVariables{
+			Username: userInfo.Name,
+			Link:     types.PortalURL + "/api/auth/v1/email?access=" + tokenInfo.Access,
+		}
+		subject = "Email Verification"
+
+		buf, err = generates.GetEmailBody(types.VerificationEmailTemplatePath, templateVar)
+		if err != nil {
+			log.Error("Error occurred while getting email body for user: " + userInfo.UID + "error: " + err.Error())
+			return err
+		}
+	case ResetPasswordEmail:
+		email = userInfo.Email
+		templateVar := generates.TemplateVariables{
+			Username:      userInfo.Name,
+			Link:          types.PortalURL + "/change-password?access=" + tokenInfo.Access,
+			RetriggerLink: types.PortalURL + "/api/auth/v1/password?access=" + tokenInfo.Access,
+		}
+		subject = "Password Reset"
+
+		buf, err = generates.GetEmailBody(types.ResetPasswordEmailTemplatePath, templateVar)
+		if err != nil {
+			log.Error("Error occurred while getting email body for user: " + userInfo.UID + "error: " + err.Error())
+			return err
+		}
 	}
 
-	err = generates.SendEmail(userInfo.UnverifiedEmail, "Email Verification", buf.String())
+	err = generates.SendEmail(email, subject, buf.String())
 	if err != nil {
 		log.Error("Error occurred while sending email for user: " + userInfo.UID + "error: " + err.Error())
 		return err

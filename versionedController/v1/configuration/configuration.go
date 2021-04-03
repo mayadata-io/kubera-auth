@@ -166,7 +166,7 @@ func getTokenFromHeader(r *http.Request) (string, error) {
 	return token, nil
 }
 
-// Register will rsgister this controller to the specified router
+// Register will register this controller to the specified router
 func (configurationController *Controller) Register(router *gin.RouterGroup) {
 	controller.RegisterController(router, configurationController, configurationController.routePath)
 }

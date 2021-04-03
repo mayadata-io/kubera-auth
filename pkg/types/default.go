@@ -15,14 +15,19 @@ var (
 // Authentication related constants
 const (
 	DefaultAuthDB                      string        = "auth"
-	DefaultLocalAuthCollection         string        = "usercredentials"
-	GithubState                        string        = "github"
-	JWTUserCredentialsKey              string        = "userCredentials"
-	GoogleState                        string        = "google"
-	TemplatePath                       string        = "./templates"
-	AuthHeaderKey                      string        = "Authorization"
-	AuthHeaderPrefix                   string        = "Bearer "
-	TimeFormat                         string        = time.RFC1123Z
+	DefaultLocalAuthCollection                       = "usercredentials"
+	GithubState                                      = "github"
+	GoogleState                                      = "google"
+	JWTUserCredentialsKey                            = "userCredentials"
+	TemplatePath                                     = "./templates"
+	KuberaPortalImagePath                            = "/kuberaPortal.png"
+	MayadataLogoImagePath                            = "/mayadata-logo.png"
+	BackgroundEmailImagePath                         = "/bg-kubera-email.png"
+	VerificationEmailTemplatePath                    = "/verificationEmailTemplate.html"
+	ResetPasswordEmailTemplatePath                   = "/resetPasswordEmailTemplate.html"
+	AuthHeaderKey                                    = "Authorization"
+	AuthHeaderPrefix                                 = "Bearer "
+	TimeFormat                                       = time.RFC1123Z
 	VerificationLinkExpirationTimeUnit time.Duration = 10
 	PasswordEncryptionCost             int           = 15
 )

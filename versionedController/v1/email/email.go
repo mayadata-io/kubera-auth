@@ -68,7 +68,7 @@ func (emailController *EmailController) Get(c *gin.Context) {
 	controller.Server.VerifyEmail(c, redirectURL)
 }
 
-// Register will rsgister this controller to the specified router
+// Register will register this controller to the specified router
 func (emailController *EmailController) Register(router *gin.RouterGroup) {
 	controller.RegisterController(router, emailController, emailController.routePath)
 }

@@ -41,6 +41,7 @@ var (
 		"/v1" + v1.ConfigurationRoute: {http.MethodGet},
 		"/v1" + healthCheckRoute:      {http.MethodGet},
 		"/v1" + v1.SignupRoute:        {http.MethodPost},
+		"/v1" + v1.PasswordRoute:      {http.MethodGet},
 	}
 )
 

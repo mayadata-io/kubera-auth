@@ -52,7 +52,7 @@ func (signupController *SignupController) Post(c *gin.Context) {
 	controller.Server.SelfSignupUser(c, newUser)
 }
 
-// Register will rsgister this controller to the specified router
+// Register will register this controller to the specified router
 func (signupController *SignupController) Register(router *gin.RouterGroup) {
 	controller.RegisterController(router, signupController, signupController.routePath)
 }

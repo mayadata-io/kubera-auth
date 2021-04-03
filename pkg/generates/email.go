@@ -10,21 +10,18 @@ import (
 )
 
 type TemplateVariables struct {
-	Link     string
-	Username string
+	Link          string
+	Username      string
+	RetriggerLink string
 }
 
 var (
-	emailHost                = "smtp.gmail.com"
-	emailPort                = 465
-	contentType              = "text/html"
-	keySubject               = "Subject"
-	keyTo                    = "To"
-	keyFrom                  = "From"
-	kuberaPortalImagePath    = "/kuberaPortal.png"
-	mayadataLogoImagePath    = "/mayadata-logo.png"
-	BackgroundEmailImagePath = "/bg-kubera-email.png"
-	emailTemplatePath        = "/emailTemplate.html"
+	emailHost   = "smtp.gmail.com"
+	emailPort   = 465
+	contentType = "text/html"
+	keySubject  = "Subject"
+	keyTo       = "To"
+	keyFrom     = "From"
 )
 
 // SendEmail will send the email to the defined email.
@@ -33,9 +30,9 @@ func SendEmail(sendTo, subject string, body string) error {
 	message.SetHeader(keyTo, sendTo)
 	message.SetHeader(keySubject, subject)
 	message.SetBody(contentType, body)
-	message.Embed(types.TemplatePath + kuberaPortalImagePath)
-	message.Embed(types.TemplatePath + mayadataLogoImagePath)
-	message.Embed(types.TemplatePath + BackgroundEmailImagePath)
+	message.Embed(types.TemplatePath + types.KuberaPortalImagePath)
+	message.Embed(types.TemplatePath + types.MayadataLogoImagePath)
+	message.Embed(types.TemplatePath + types.BackgroundEmailImagePath)
 	return dialer.DialAndSend(message)
 }
 
@@ -52,15 +49,10 @@ func configureEmail() (*gomail.Dialer, *gomail.Message) {
 }
 
 // GetEmailBody forms the html template body of email
-func GetEmailBody(userName, link string) (*bytes.Buffer, error) {
-	t, err := template.ParseFiles(types.TemplatePath + emailTemplatePath)
+func GetEmailBody(emailTemplateFilePath string, templateVar TemplateVariables) (*bytes.Buffer, error) {
+	t, err := template.ParseFiles(types.TemplatePath + emailTemplateFilePath)
 	if err != nil {
 		return nil, err
-	}
-
-	templateVar := TemplateVariables{
-		Username: userName,
-		Link:     link,
 	}
 
 	buf := new(bytes.Buffer)

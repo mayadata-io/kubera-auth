@@ -14,11 +14,6 @@ type PasswordController struct {
 	routePath string
 }
 
-//Model ...
-type Model struct {
-	NewPassword string `json:"new_password,omitempty"`
-}
-
 // New creates a new User
 func New() *PasswordController {
 	return &PasswordController{
@@ -28,7 +23,11 @@ func New() *PasswordController {
 
 //Put updates the password of the concerned user
 func (password *PasswordController) Put(c *gin.Context) {
-	passwordModel := &Model{}
+	type model struct {
+		NewPassword string `json:"new_password,omitempty"`
+	}
+
+	passwordModel := &model{}
 	err := c.BindJSON(passwordModel)
 	if err != nil {
 		log.Error(err)
@@ -40,7 +39,13 @@ func (password *PasswordController) Put(c *gin.Context) {
 	controller.Server.UpdatePasswordRequest(c, passwordModel.NewPassword)
 }
 
-// Register will rsgister this controller to the specified router
+//Get sends an email for resetting the password of a user to the concerned user's email
+func (password *PasswordController) Get(c *gin.Context) {
+	email := c.Query("email")
+	controller.Server.ForgotPasswordRequest(c, email)
+}
+
+// Register will register this controller to the specified router
 func (password *PasswordController) Register(router *gin.RouterGroup) {
 	controller.RegisterController(router, password, password.routePath)
 }

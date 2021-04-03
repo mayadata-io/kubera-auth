@@ -89,7 +89,7 @@ func (login *LoginController) Delete(c *gin.Context) {
 	controller.Server.LogoutRequest(c)
 }
 
-// Register will rsgister this controller to the specified router
+// Register will register this controller to the specified router
 func (login *LoginController) Register(router *gin.RouterGroup) {
 	controller.RegisterController(router, login, login.routePath)
 }
