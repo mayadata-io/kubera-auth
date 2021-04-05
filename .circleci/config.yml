@@ -1,117 +1,85 @@
 version: 2.1
+orbs:
+  go: circleci/go@1.6.0
+  # CircleCI Certified Orb for Golang, 1.6.0 is the orb version
+  # https://circleci.com/developer/orbs/orb/circleci/go
 jobs:
-  setup-env:
-    docker:
-      - image: circleci/buildpack-deps:cosmic
+  test:
+  # test jobs runs go mod stage and runs go test
+  # The tag specifies the image tag from cimg/go,
+  # Ref: https://circleci.com/developer/images/image/cimg/go
+    executor:
+      name: go/default
+      tag: '1.16.2'
     steps:
-      - run: mkdir -p workspace
-      - run:
-          name: Setup ENV
-          command: |
-            tag=""
-            build_type=""
-            if [ "$CIRCLE_BRANCH" == "" ]; then
-                tag="$CIRCLE_TAG"
-                build_type="release"
-            else
-                tag="$CIRCLE_BRANCH-ci"
-                build_type="ci"
-            fi;
-            echo export IMGTAG=$tag >> workspace/env-vars
-            echo export BUILD_TYPE=$build_type >> workspace/env-vars
-            echo 'export REPONAME="mayadataio"' >> workspace/env-vars
-            echo 'export KUBERA_AUTH="kubera-auth"' >> workspace/env-vars
-            cat workspace/env-vars >> $BASH_ENV
-            source $BASH_ENV
-      - persist_to_workspace:
-          root: workspace
-          paths:
-            - env-vars
-
-  auth-build:
-    machine:
-      image: ubuntu-1604:201903-01
-    working_directory: ~/kubera-auth
-    environment:
-      GO111MODULE: "on"
-    steps:
-      - attach_workspace:
-          at: /tmp/workspace
-      - run: |
-          cat /tmp/workspace/env-vars >> $BASH_ENV
-          source $BASH_ENV
-      - run:
-          name: Setup GO
-          command: cd && wget https://dl.google.com/go/go1.14.6.linux-amd64.tar.gz && sudo tar -xvf go1.14.6.linux-amd64.tar.gz && sudo rm -rf /usr/local/go && sudo mv go /usr/local && export GOROOT=/usr/local/go && export BUILD_TYPE=ci
+      # Get the code
       - checkout
+      # Load modules from cache
+      - go/load-cache
+      # Runs go mod download
+      - go/mod-download
+      # Saves the modules in a Cache with the checksum of go.sum
+      - go/save-cache
       - run:
-          name: Run Checks
-          command: make deps checks
-      - run:
-          name: Run GolangCI Lint
-          command: curl -sSfL https://github.com/golangci/golangci-lint/releases/download/v1.37.1/golangci-lint-1.37.1-linux-amd64.tar.gz | tar zxf - && mv golangci-lint-1.37.1-linux-amd64/golangci-lint . && rm -rf golangci-lint-1.37.1-linux-amd64 && ./golangci-lint run --timeout 5m
-      - run:
-          name: Run Tests
+          name: "Run tests with coverage"
+          # Sets some environment variables to make tests run
           command: make coverage
       - run:
-          name: Upload coverage result to codecov
-          command: bash <(curl -s https://codecov.io/bash)
-          # Ref: https://circleci.com/docs/2.0/configuration-reference/#the-when-attribute
-          when: always
+          name: "Upload coverage data to codecov"
+          # Send result to CodeCov
+          command: bash <(wget -qO - https://codecov.io/bash)
       - run:
-          name: Skip image building for pull requests
-          command: if [[ -n "$CIRCLE_PULL_REQUEST" ]] ; then circleci-agent step halt; fi
+          # Install GolangCI-Lint, this might be better off as a separate job for separated out ✓
+          name: "Setup GolangCI-Lint"
+          command: wget https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh -O - | sh -s -- -b $(go env GOPATH)/bin v1.39.0
       - run:
-          name: Build Image
-          command: make build IMGTAG=${IMGTAG}
+          name: "Run GolangCI-Lint"
+          command: golangci-lint run --timeout 5m
+      # TODO: Find if there's a way to get different checks without running the builds in different jobs
       - run:
-          name: Save kubera-auth docker image
-          command: docker save -o /tmp/workspace/${KUBERA_AUTH}.tar ${REPONAME}/${KUBERA_AUTH}:${IMGTAG}
+          name: "Build binary"
+          command: CGO_ENABLED=0 go build -o ./server ./src
       - persist_to_workspace:
-          root: /tmp/workspace
+          root: ~/project
           paths:
-            - kubera-auth.tar
-            - env-vars
-
-  auth-push:
-    machine:
-      image: ubuntu-1604:201903-01
-    working_directory: ~/kubera-auth
+          # NOTE: Only these files will be present in the next CircleCI job
+          - server
+          - templates
+          - Dockerfile
+          - Makefile
+          # Persist ~/project/{server, templates, Dockerfile, Makefile} to workspace, to be used in build job
+  build:
+    executor:
+      name: go/default
+      tag: '1.16.2'
     steps:
+      # NOTE: This job doesn't have the code
       - attach_workspace:
-          at: /tmp/workspace
-      - run: |
-          cat /tmp/workspace/env-vars >> $BASH_ENV
-          source $BASH_ENV
-      - checkout
+          at: ~/project
+      - run: ls -la ~/project
+      # depends on completion of test job
+      - run: docker login -u $DNAME -p $DPASS
+      # https://circleci.com/docs/2.0/building-docker-images/
+      - setup_remote_docker
+      # Build the binary in the go container
       - run:
-          name: Loading kubera auth docker image
+        # The image tagging logic goes here, the env variables aren't exported to further steps
+          name: "Build a docker image"
           command: |
-            docker load -i /tmp/workspace/${KUBERA_AUTH}.tar
-      - run:
-          name: Docker images
-          command: docker images
-      - run:
-          name: Pushing kubera auth
-          command: make push IMGTAG=${IMGTAG} BUILD_TYPE=${BUILD_TYPE}
-
+            [[ $CIRCLE_BRANCH == TechPreview* ]] && export IMGTAG=$CIRCLE_BRANCH || export IMGTAG="master-ci"
+            # Build the image with $IMGTAG
+            make build
+            docker push mayadataio/kubera-auth:$IMGTAG
 workflows:
   version: 2
-  auth-build:
+  build:
     jobs:
-      - setup-env:
-          filters:
-            tags:
-              only: /.*/
-      - auth-build:
+      # test job should always run
+      - test
+      # build job should only run on master, TechPreview*, v* branches
+      - build:
           requires:
-            - setup-env
-          filters:
-            tags:
-              only: /.*/
-      - auth-push:
-          requires:
-            - auth-build
+            - test
           filters:
             branches:
               only:
@@ -119,4 +87,5 @@ workflows:
                 - /TechPreview.*/
                 - /^v.*/
             tags:
-              only: /.*/
+              only:
+              - /.*/
