@@ -22,7 +22,7 @@ func IsUserExists(userStore *store.UserStore, user *models.UserCredentials) (boo
 	}
 
 	if !exists && user.Email != "" {
-		_, err := userStore.GetUser(bson.M{"email": user.Email})
+		_, err := userStore.GetUser(bson.M{"email": user.UnverifiedEmail})
 		if err != nil && err == mgo.ErrNotFound {
 			exists = false
 		} else if err != nil {

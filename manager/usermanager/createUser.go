@@ -1,14 +1,14 @@
 package usermanager
 
 import (
-	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
+	"golang.org/x/crypto/bcrypt"
+
 	"github.com/mayadata-io/kubera-auth/pkg/errors"
 	"github.com/mayadata-io/kubera-auth/pkg/models"
 	"github.com/mayadata-io/kubera-auth/pkg/store"
 	"github.com/mayadata-io/kubera-auth/pkg/types"
 	"github.com/mayadata-io/kubera-auth/pkg/utils/uuid"
-	"golang.org/x/crypto/bcrypt"
 )
 
 // CreateUser builds a user entry from the provided details about the user
@@ -68,16 +68,21 @@ func CreateUser(userStore *store.UserStore, user *models.UserCredentials, isSign
 
 // CreateSocialUser creates a user if the user opts logging in with some oauth
 func CreateSocialUser(userStore *store.UserStore, user *models.UserCredentials) error {
-	query := bson.M{"email": user.Email, "kind": models.LocalAuth}
-	storedUser, err := userStore.GetUser(query)
-	if err != nil && err == mgo.ErrNotFound {
-		user.UserName = generateUserName(user.Name)
-		user.UID = uuid.Must(uuid.NewRandom()).String()
-	} else if err != nil {
+	userWithSameEmail, err := GetUser(userStore, bson.M{"email": user.Email})
+	if err == nil && userWithSameEmail != nil {
+		return errors.ErrUserExists
+	} else if err != errors.ErrInvalidUser {
 		return err
-	} else {
-		user.UserName = storedUser.UserName
-		user.UID = storedUser.UID
 	}
+
+	for {
+		user.UserName = generateUserName(user.Name)
+		_, err = GetUserByUserName(userStore, user.UserName)
+		if err == errors.ErrInvalidUser {
+			break
+		}
+	}
+	user.UID = uuid.Must(uuid.NewRandom()).String()
+
 	return userStore.Set(user)
 }

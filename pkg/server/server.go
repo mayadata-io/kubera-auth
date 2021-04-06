@@ -8,6 +8,7 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
+	"github.com/globalsign/mgo/bson"
 	log "github.com/golang/glog"
 	"github.com/imdario/mergo"
 
@@ -367,8 +368,16 @@ func (s *Server) SendVerificationLink(c *gin.Context, resend bool, unverifiedEma
 	}
 	jwtUserCredentials := jwtUser.(*models.UserCredentials)
 
+	userWithSameEmail, err := usermanager.GetUser(s.userStore, bson.M{"email": unverifiedEmail})
+	if err == nil && userWithSameEmail != nil {
+		s.errorResponse(c, errors.ErrUserExists)
+		return
+	} else if err != errors.ErrInvalidUser {
+		s.errorResponse(c, err)
+		return
+	}
+
 	var userInfo *models.PublicUserInfo
-	var err error
 	if resend {
 		userInfo = jwtUserCredentials.GetPublicInfo()
 	} else {
@@ -401,6 +410,21 @@ func (s *Server) VerifyEmail(c *gin.Context, redirectURL string) {
 	jwtUserCredentials := jwtUser.(*models.UserCredentials)
 
 	if jwtUserCredentials.UnverifiedEmail != "" {
+		userWithSameEmail, err := usermanager.GetUser(s.userStore, bson.M{"email": jwtUserCredentials.UnverifiedEmail})
+		if err == nil && userWithSameEmail != nil {
+			log.Errorln("Email already in use with another user for user uid: ", jwtUserCredentials.UID)
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "Email already in use with another user",
+			})
+			c.Redirect(http.StatusPermanentRedirect, redirectURL)
+			return
+		} else if err != errors.ErrInvalidUser {
+			s.errorResponse(c, err)
+			// Redirecting user to UI if email found in field `email` is already present for some user
+			c.Redirect(http.StatusPermanentRedirect, redirectURL)
+			return
+		}
+
 		jwtUserCredentials.Email = jwtUserCredentials.UnverifiedEmail
 		jwtUserCredentials.UnverifiedEmail = ""
 		if jwtUserCredentials.Kind == models.LocalAuth {
@@ -421,6 +445,7 @@ func (s *Server) VerifyEmail(c *gin.Context, redirectURL string) {
 		s.errorResponse(c, err)
 		// Redirecting user to UI if updating the database fails
 		c.Redirect(http.StatusPermanentRedirect, redirectURL)
+		return
 	}
 
 	log.Infoln("Email: ", jwtUserCredentials.Email, " is verified successfully for user uid: ", jwtUserCredentials.UID)
