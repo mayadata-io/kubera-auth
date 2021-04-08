@@ -79,17 +79,15 @@ func CreateSocialUser(userStore *store.UserStore, user *models.UserCredentials) 
 	}
 
 	// If user with the given email does not exist.
-	// This infinite loop generates a username and checks whether this username
+	// This loop generates a username and checks whether this username
 	// is already existing or not. If it is already existing the loop will go ahead
 	// and try with a different username and if the username is not in use
 	// `break` statement will be executed.
-	for {
+	user.UserName = generateUserName(user.Name)
+	_, err = GetUserByUserName(userStore, user.UserName)
+	for err != errors.ErrInvalidUser {
 		user.UserName = generateUserName(user.Name)
 		_, err = GetUserByUserName(userStore, user.UserName)
-		if err == errors.ErrInvalidUser {
-			// User does not exist
-			break
-		}
 	}
 	user.UID = uuid.Must(uuid.NewRandom()).String()
 

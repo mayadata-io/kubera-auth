@@ -47,7 +47,7 @@ func SocialLoginUser(userStore *store.UserStore, accessGenerate *generates.JWTAc
 			return nil, err
 		}
 	} else if err == errors.ErrInvalidUser {
-		// If user does not exists
+		// If user does not exist
 		createErr := usermanager.CreateSocialUser(userStore, user)
 		if createErr != nil {
 			return nil, createErr
