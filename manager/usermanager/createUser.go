@@ -70,15 +70,24 @@ func CreateUser(userStore *store.UserStore, user *models.UserCredentials, isSign
 func CreateSocialUser(userStore *store.UserStore, user *models.UserCredentials) error {
 	userWithSameEmail, err := GetUser(userStore, bson.M{"email": user.Email})
 	if err == nil && userWithSameEmail != nil {
+		// If a user with this email is already existing then return error
 		return errors.ErrUserExists
 	} else if err != errors.ErrInvalidUser {
+		// If some error occurs other than invalid user (here invalid user
+		// means such a user does not exist)
 		return err
 	}
 
+	// If user with the given email does not exist.
+	// This infinite loop generates a username and checks whether this username
+	// is already existing or not. If it is already existing the loop will go ahead
+	// and try with a different username and if the username is not in use
+	// `break` statement will be executed.
 	for {
 		user.UserName = generateUserName(user.Name)
 		_, err = GetUserByUserName(userStore, user.UserName)
 		if err == errors.ErrInvalidUser {
+			// User does not exist
 			break
 		}
 	}

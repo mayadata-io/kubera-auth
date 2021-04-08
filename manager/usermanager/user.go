@@ -21,7 +21,8 @@ func IsUserExists(userStore *store.UserStore, user *models.UserCredentials) (boo
 		return false, err
 	}
 
-	if !exists && user.Email != "" {
+	if !exists && user.UnverifiedEmail != "" {
+		// Check if the supplied email is already registered with some other user
 		_, err := userStore.GetUser(bson.M{"email": user.UnverifiedEmail})
 		if err != nil && err == mgo.ErrNotFound {
 			exists = false

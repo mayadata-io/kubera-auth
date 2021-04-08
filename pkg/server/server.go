@@ -368,11 +368,15 @@ func (s *Server) SendVerificationLink(c *gin.Context, resend bool, unverifiedEma
 	}
 	jwtUserCredentials := jwtUser.(*models.UserCredentials)
 
+	// Checking if the given email is already registered with some user
 	userWithSameEmail, err := usermanager.GetUser(s.userStore, bson.M{"email": unverifiedEmail})
 	if err == nil && userWithSameEmail != nil {
+		// User with same email exists
 		s.errorResponse(c, errors.ErrUserExists)
 		return
 	} else if err != errors.ErrInvalidUser {
+		// If some error occurs other than invalid user (here invalid user
+		// means such a user does not exist)
 		s.errorResponse(c, err)
 		return
 	}
@@ -410,8 +414,10 @@ func (s *Server) VerifyEmail(c *gin.Context, redirectURL string) {
 	jwtUserCredentials := jwtUser.(*models.UserCredentials)
 
 	if jwtUserCredentials.UnverifiedEmail != "" {
+		// Checking if the given email is already registered with some user
 		userWithSameEmail, err := usermanager.GetUser(s.userStore, bson.M{"email": jwtUserCredentials.UnverifiedEmail})
 		if err == nil && userWithSameEmail != nil {
+			// User with same email exists
 			log.Errorln("Email already in use with another user for user uid: ", jwtUserCredentials.UID)
 			c.JSON(http.StatusBadRequest, gin.H{
 				"error": "Email already in use with another user",
@@ -419,6 +425,8 @@ func (s *Server) VerifyEmail(c *gin.Context, redirectURL string) {
 			c.Redirect(http.StatusPermanentRedirect, redirectURL)
 			return
 		} else if err != errors.ErrInvalidUser {
+			// If some error occurs other than invalid user (here invalid user
+			// means such a user does not exist)
 			s.errorResponse(c, err)
 			// Redirecting user to UI if email found in field `email` is already present for some user
 			c.Redirect(http.StatusPermanentRedirect, redirectURL)
