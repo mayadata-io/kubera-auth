@@ -1,6 +1,8 @@
 package usermanager
 
 import (
+	"time"
+
 	"github.com/globalsign/mgo/bson"
 	"golang.org/x/crypto/bcrypt"
 
@@ -88,6 +90,8 @@ func CreateSocialUser(userStore *store.UserStore, user *models.UserCredentials) 
 	for err != errors.ErrInvalidUser {
 		user.UserName = generateUserName(user.Name)
 		_, err = GetUserByUserName(userStore, user.UserName)
+		// A 100ms sleep will help the CPU to context-switch for other requests in case this loop becomes an infinite loop.
+		time.Sleep(time.Millisecond * 100)
 	}
 	user.UID = uuid.Must(uuid.NewRandom()).String()
 
