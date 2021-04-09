@@ -1,7 +1,6 @@
 package loginmanager
 
 import (
-	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
 	"golang.org/x/crypto/bcrypt"
 
@@ -25,7 +24,7 @@ func LocalLoginUser(userStore *store.UserStore, accessGenerate *generates.JWTAcc
 		return nil, err
 	}
 
-	storedUser, err := userStore.GetUser(bson.M{"username": username, "kind": models.LocalAuth})
+	storedUser, err := usermanager.GetUser(userStore, bson.M{"username": username, "kind": models.LocalAuth})
 	if err != nil {
 		return nil, err
 	}
@@ -36,18 +35,8 @@ func LocalLoginUser(userStore *store.UserStore, accessGenerate *generates.JWTAcc
 // SocialLoginUser get the user information
 func SocialLoginUser(userStore *store.UserStore, accessGenerate *generates.JWTAccessGenerate, user *models.UserCredentials) (*models.Token, error) {
 	query := bson.M{"social_auth_id": user.SocialAuthID, "kind": user.Kind}
-	storedUser, err := userStore.GetUser(query)
-	if err != nil && err == mgo.ErrNotFound {
-		// If user does not exists
-		createErr := usermanager.CreateSocialUser(userStore, user)
-		if createErr != nil {
-			return nil, createErr
-		}
-		storedUser = user
-	} else if err != nil {
-		// Error other than user exists
-		return nil, err
-	} else {
+	storedUser, err := usermanager.GetUser(userStore, query)
+	if err == nil && storedUser != nil {
 		// If user exists, set loggedIn to true & update photo
 		storedUser.LoggedIn = true
 		if user.Photo != "" {
@@ -57,6 +46,16 @@ func SocialLoginUser(userStore *store.UserStore, accessGenerate *generates.JWTAc
 		if err != nil {
 			return nil, err
 		}
+	} else if err == errors.ErrInvalidUser {
+		// If user does not exist
+		createErr := usermanager.CreateSocialUser(userStore, user)
+		if createErr != nil {
+			return nil, createErr
+		}
+		storedUser = user
+	} else {
+		// Error other than user exists
+		return nil, err
 	}
 
 	tgr := &jwtmanager.TokenGenerateRequest{

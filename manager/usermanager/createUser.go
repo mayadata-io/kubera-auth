@@ -1,14 +1,16 @@
 package usermanager
 
 import (
-	"github.com/globalsign/mgo"
+	"time"
+
 	"github.com/globalsign/mgo/bson"
+	"golang.org/x/crypto/bcrypt"
+
 	"github.com/mayadata-io/kubera-auth/pkg/errors"
 	"github.com/mayadata-io/kubera-auth/pkg/models"
 	"github.com/mayadata-io/kubera-auth/pkg/store"
 	"github.com/mayadata-io/kubera-auth/pkg/types"
 	"github.com/mayadata-io/kubera-auth/pkg/utils/uuid"
-	"golang.org/x/crypto/bcrypt"
 )
 
 // CreateUser builds a user entry from the provided details about the user
@@ -68,16 +70,30 @@ func CreateUser(userStore *store.UserStore, user *models.UserCredentials, isSign
 
 // CreateSocialUser creates a user if the user opts logging in with some oauth
 func CreateSocialUser(userStore *store.UserStore, user *models.UserCredentials) error {
-	query := bson.M{"email": user.Email, "kind": models.LocalAuth}
-	storedUser, err := userStore.GetUser(query)
-	if err != nil && err == mgo.ErrNotFound {
-		user.UserName = generateUserName(user.Name)
-		user.UID = uuid.Must(uuid.NewRandom()).String()
-	} else if err != nil {
+	userWithSameEmail, err := GetUser(userStore, bson.M{"email": user.Email})
+	if err == nil && userWithSameEmail != nil {
+		// If a user with this email is already existing then return error
+		return errors.ErrUserExists
+	} else if err != errors.ErrInvalidUser {
+		// If some error occurs other than invalid user (here invalid user
+		// means such a user does not exist)
 		return err
-	} else {
-		user.UserName = storedUser.UserName
-		user.UID = storedUser.UID
 	}
+
+	// If user with the given email does not exist.
+	// This loop generates a username and checks whether this username
+	// is already existing or not. If it is already existing the loop will go ahead
+	// and try with a different username and if the username is not in use
+	// `break` statement will be executed.
+	user.UserName = generateUserName(user.Name)
+	_, err = GetUserByUserName(userStore, user.UserName)
+	for err != errors.ErrInvalidUser {
+		user.UserName = generateUserName(user.Name)
+		_, err = GetUserByUserName(userStore, user.UserName)
+		// A 100ms sleep will help the CPU to context-switch for other requests in case this loop becomes an infinite loop.
+		time.Sleep(time.Millisecond * 100)
+	}
+	user.UID = uuid.Must(uuid.NewRandom()).String()
+
 	return userStore.Set(user)
 }
