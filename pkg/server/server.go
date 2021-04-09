@@ -288,6 +288,20 @@ func (s *Server) CreateRequest(c *gin.Context, user *models.UserCredentials) {
 		return
 	}
 
+	if user.UnverifiedEmail != "" {
+		storedUser, err := usermanager.GetUser(s.userStore, bson.M{"unverified_email": user.UnverifiedEmail})
+		if err == nil && storedUser != nil {
+			// If user exists
+			s.errorResponse(c, errors.ErrUserExists)
+			return
+		} else if err != errors.ErrInvalidUser {
+			// If some error occurs other than invalid user (here invalid user
+			// means such a user does not exist)
+			s.errorResponse(c, err)
+			return
+		}
+	}
+
 	var createdUserInfo *models.PublicUserInfo
 	var err error
 	if jwtUserCredentials.Role == models.RoleAdmin {
