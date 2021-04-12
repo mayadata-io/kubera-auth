@@ -66,7 +66,7 @@ jobs:
         # The image tagging logic goes here, the env variables aren't exported to further steps
           name: "Build a docker image"
           command: |
-            [[ $CIRCLE_BRANCH == TechPreview* ]] && export IMGTAG=$CIRCLE_BRANCH || export IMGTAG="master-ci"
+            [[ $CIRCLE_BRANCH == TechPreview* ]] && export IMGTAG=$CIRCLE_BRANCH || export IMGTAG=$CIRCLE_BRANCH-<< pipeline.number >>
             # Build the image with $IMGTAG
             make build
             docker push mayadataio/kubera-auth:$IMGTAG
