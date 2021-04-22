@@ -42,7 +42,7 @@ func getGitHubUser(c *gin.Context, token *oauth2.Token) (*models.UserCredentials
 	}
 
 	for _, githubUserEmail := range githubUserEmails {
-		if githubUserEmail.Primary != nil && githubUserEmail.Email != nil {
+		if githubUserEmail.Primary != nil && *githubUserEmail.Primary {
 			user.Email = githubUserEmail.GetEmail()
 			user.OnBoardingState = models.BoardingStateEmailVerified
 			break
