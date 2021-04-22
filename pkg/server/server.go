@@ -97,7 +97,7 @@ func (s *Server) SocialLoginRequest(c *gin.Context, user *models.UserCredentials
 	tokenInfo, err := loginmanager.SocialLoginUser(s.userStore, s.accessGenerate, user)
 	if err != nil {
 		log.Errorln("Error logging in ", err)
-		s.errorResponse(c, err)
+		c.Redirect(http.StatusConflict, types.PortalURL+"?error="+errors.ErrUserExists.Error())
 		return
 	}
 
