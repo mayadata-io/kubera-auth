@@ -1,6 +1,6 @@
 # Build Files
 output/
-server
 .idea
+./server
 coverage.txt
 vendor/

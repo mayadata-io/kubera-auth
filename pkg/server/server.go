@@ -97,7 +97,12 @@ func (s *Server) SocialLoginRequest(c *gin.Context, user *models.UserCredentials
 	tokenInfo, err := loginmanager.SocialLoginUser(s.userStore, s.accessGenerate, user)
 	if err != nil {
 		log.Errorln("Error logging in ", err)
-		c.Redirect(http.StatusConflict, types.PortalURL+"?error="+errors.ErrUserExists.Error())
+		// Below stuff solves the problem but gives an inappropriate status code
+		c.Redirect(http.StatusTemporaryRedirect, types.PortalURL+"/login?error="+errors.ErrUserExists.Error())
+		// Below stuff doesn't solve the problem but gives correct status code
+		// c.JSON(http.StatusInternalServerError, gin.H{
+		// 	"error": errors.ErrUserExists.Error(),
+		// })
 		return
 	}
 
